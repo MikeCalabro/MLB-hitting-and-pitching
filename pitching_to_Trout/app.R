@@ -41,7 +41,7 @@ ui <- fluidPage(
 
       mainPanel(
          plotOutput("plateView", width = "90%", height = "700px"),
-         HTML('<img src="plate.png", width = "80%", height="100px"/>')
+         HTML('<img src="plate.png", width = "70%", height="100px"/>')
       )
    )
 )
