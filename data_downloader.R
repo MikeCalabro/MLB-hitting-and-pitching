@@ -20,6 +20,9 @@ trout_data <- trout_2017 %>%
 # Peak at data to see the different variables we have to work with
 glimpse(trout_data)
 
+# RDS to transfer the data to my Shiny app
+write_rds(trout_data, path = "pitching_to_Trout/trout_data")
+
 # WORD
 # Now I need to learn how to plot a pitch in a strikezone
 
