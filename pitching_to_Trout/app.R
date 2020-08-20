@@ -40,8 +40,8 @@ ui <- fluidPage(
       ),
 
       mainPanel(
-         plotOutput("plateView", width = "90%", height = "600px"),
-         img(src="plate.png", height = "100px", width = "70%", padding = "100px")
+         plotOutput("plateView", width = "70%", height = "600px"),
+         img(src="plate.png", width = "55%", height = "80px")
       )
    )
 )
@@ -57,6 +57,7 @@ server <- function(input, output) {
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2])) %>%
        ggplot(aes(x = plate_x, y = plate_z)) +
+       geom_bin2d(binwidth = c(0.33, 0.2323)) +
        geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
        geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
        geom_segment(aes(x = -1, y = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot),
@@ -68,9 +69,9 @@ server <- function(input, output) {
        geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot))) +
        geom_segment(aes(x = 1, y = mean(sz_top), xend = 1, yend = mean(sz_bot))) +
        geom_segment(aes(x = 1, y = mean(sz_top), xend = 1, yend = mean(sz_bot))) +
-       geom_point(aes(color = pitch_name), size = 1.5) +
-       ylim(1, 4) +
-       xlim(-2, 2) +
+       #geom_point(aes(color = pitch_name), size = 1.5) +
+       ylim(4.1, 1.03) +
+       xlim(-1.67, 1.67) +
        theme(axis.ticks = element_blank(),
              axis.text = element_blank(),
              axis.title = element_blank(),

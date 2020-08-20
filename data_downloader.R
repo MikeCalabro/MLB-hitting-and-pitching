@@ -60,3 +60,12 @@ trout_data %>%
         axis.title = element_blank(),
         panel.grid = element_blank(),
         panel.background = element_blank())
+
+
+trout_data %>%
+  filter(!is.na(sz_bot)) %>%
+  summarise(btm = mean(sz_bot))
+3.48-1.64
+1.84/3
+3.48+.614
+1.64 - .614
