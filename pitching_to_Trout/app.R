@@ -7,7 +7,7 @@ trout_data <- read_rds("trout_data")
 
 ui <- fluidPage(
    theme = shinytheme("sandstone"),
-   titlePanel("Pitching To Mike Trout"),
+   titlePanel("Pitching To Mike Trout 2017-2020: A Shiny App by Michael Calabro"),
    navbarPage("Navbar",
    tabPanel("All Pitches",
         column(2, 
@@ -20,7 +20,13 @@ ui <- fluidPage(
                        "Cutter",
                        "Sinker",
                        "Slider"),
-                     selected = "4-Seam Fastball"),
+                     selected = c("2-Seam Fastball",
+                                  "4-Seam Fastball",
+                                  "Changeup",
+                                  "Curveball",
+                                  "Cutter",
+                                  "Sinker",
+                                  "Slider")),
          sliderInput("balls",
                      "Balls in the Count",
                      min = 0,
@@ -48,13 +54,23 @@ ui <- fluidPage(
                               "hit_into_play",
                               "hit_into_play_no_out",
                               "swinging_strike"),
-                            selected = c("ball", "called_strike", "swinging_strike"))
+                            selected = c("ball",
+                                         "called_strike",
+                                         "foul",
+                                         "hit_into_play",
+                                         "hit_into_play_no_out",
+                                         "swinging_strike"))
                                                 
              ),
 
       column(4,
-         plotOutput("plateView", height = "540px"),
+         plotOutput("allPlot", height = "540px"),
          img(src="plate.png", width = "70%", height = "60px")
+      ),
+      column(4,
+         tableOutput("allDescTable"),
+         br(),
+         tableOutput("allPitchTable")
       )
    ),
    tabPanel("Batted Balls"
@@ -67,7 +83,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
    
-   output$plateView <- renderPlot({
+   output$allPlot <- renderPlot({
      trout_data %>%
        filter(pitch_name %in% input$pitches,
               description %in% input$results,
@@ -104,6 +120,45 @@ server <- function(input, output) {
              panel.grid = element_blank(),
              panel.background = element_blank())
    })
+   
+   output$allDescTable <- renderTable({
+    table_data <- trout_data %>%
+       filter(pitch_name %in% input$pitches,
+              description %in% input$results,
+              balls %in% (input$balls[1]:input$balls[2]),
+              strikes %in% (input$strikes[1]:input$strikes[2]))
+    table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+    
+    table_data %>%
+       group_by(description, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(description, count, share) %>%
+       arrange(desc(count))
+   },
+   bordered = TRUE,
+   spacing = "s")
+   
+   output$allPitchTable <- renderTable({
+     table_data <- trout_data %>%
+       filter(pitch_name %in% input$pitches,
+              description %in% input$results,
+              balls %in% (input$balls[1]:input$balls[2]),
+              strikes %in% (input$strikes[1]:input$strikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+     
+     table_data %>%
+       group_by(pitch_name, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(pitch_name, count, share) %>%
+       arrange(desc(count))
+   },
+   bordered = TRUE,
+   spacing = "s")   
+   
 }
 
 # Run the application 
