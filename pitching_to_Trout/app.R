@@ -10,8 +10,7 @@ ui <- fluidPage(
    titlePanel("Pitching To Mike Trout"),
    navbarPage("Navbar",
    tabPanel("All Pitches",
-   sidebarLayout(
-      sidebarPanel(
+        column(2, 
          checkboxGroupInput("pitches",
                      "Pitches to include:",
                      c("2-Seam Fastball",
@@ -39,13 +38,24 @@ ui <- fluidPage(
                        "Point: Color = Pitch Result" = "Ppr",
                        "Bin: Color = Pitch Count" = "Bpc"),
                      selected = "Bpc")
-      ),
+        ),
+      column(2,
+         checkboxGroupInput("results",
+                            "Pitch Results to include:",
+                            c("ball",
+                              "called_strike",
+                              "foul",
+                              "hit_into_play",
+                              "hit_into_play_no_out",
+                              "swinging_strike"),
+                            selected = c("ball", "called_strike", "swinging_strike"))
+                                                
+             ),
 
-      mainPanel(
-         plotOutput("plateView", width = "62%", height = "540px"),
-         img(src="plate.png", width = "45%", height = "60px")
+      column(4,
+         plotOutput("plateView", height = "540px"),
+         img(src="plate.png", width = "70%", height = "60px")
       )
-   )
    ),
    tabPanel("Batted Balls"
      
@@ -60,6 +70,7 @@ server <- function(input, output) {
    output$plateView <- renderPlot({
      trout_data %>%
        filter(pitch_name %in% input$pitches,
+              description %in% input$results,
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2])) %>%
        ggplot(aes(x = plate_x, y = plate_z)) +
