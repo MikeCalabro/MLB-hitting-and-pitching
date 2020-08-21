@@ -127,7 +127,7 @@ server <- function(input, output) {
        } +
        {
          if(input$nums){
-           geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 4)
+           geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 7,color = "white")
          }
        } +
        ylim(4.1, 1.03) +
