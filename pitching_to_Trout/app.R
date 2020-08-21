@@ -43,7 +43,11 @@ ui <- fluidPage(
                      c("Point: Color = Pitch Type" = "Ppt",
                        "Point: Color = Pitch Result" = "Ppr",
                        "Bin: Color = Pitch Count" = "Bpc"),
-                     selected = "Bpc")
+                     selected = "Bpc"),
+         br(),
+         checkboxInput("nums",
+                       "Show Zone Numbers:",
+                       value = TRUE)
         ),
       column(2,
          checkboxGroupInput("results",
@@ -51,15 +55,18 @@ ui <- fluidPage(
                             c("ball",
                               "called_strike",
                               "foul",
+                              "foul_tip",
                               "hit_into_play",
                               "hit_into_play_no_out",
                               "swinging_strike"),
                             selected = c("ball",
                                          "called_strike",
                                          "foul",
+                                         "foul_tip",
                                          "hit_into_play",
                                          "hit_into_play_no_out",
-                                         "swinging_strike"))
+                                         "swinging_strike")),
+         tableOutput("allTable3")
                                                 
              ),
 
@@ -68,9 +75,9 @@ ui <- fluidPage(
          img(src="plate.png", width = "70%", height = "60px")
       ),
       column(4,
-         tableOutput("allDescTable"),
+         tableOutput("allTable1"),
          br(),
-         tableOutput("allPitchTable")
+         tableOutput("allTable2")
       )
    ),
    tabPanel("Batted Balls"
@@ -84,6 +91,12 @@ ui <- fluidPage(
 server <- function(input, output) {
    
    output$allPlot <- renderPlot({
+     
+     num_x <- c(-.7, 0, .7, -.7, 0, .7, -.7, 0, .7, -1.3, 1.3, -1.3, 1.3)
+     num_y <- c(2, 2, 2, 2.6, 2.6, 2.6, 3.2, 3.2, 3.2, 3.7, 3.7, 1.4, 1.4)
+     val <- c(7, 8, 9, 4, 5, 6, 1, 2, 3, 11, 12, 13, 14)
+     num_tab <- data.frame(num_x, num_y, val)
+     
      trout_data %>%
        filter(pitch_name %in% input$pitches,
               description %in% input$results,
@@ -112,6 +125,11 @@ server <- function(input, output) {
            geom_point(aes(color = description), size = 2)
          }
        } +
+       {
+         if(input$nums){
+           geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 4)
+         }
+       } +
        ylim(4.1, 1.03) +
        xlim(-1.67, 1.67) +
        theme(axis.ticks = element_blank(),
@@ -121,7 +139,7 @@ server <- function(input, output) {
              panel.background = element_blank())
    })
    
-   output$allDescTable <- renderTable({
+   output$allTable1 <- renderTable({
     table_data <- trout_data %>%
        filter(pitch_name %in% input$pitches,
               description %in% input$results,
@@ -131,16 +149,17 @@ server <- function(input, output) {
        mutate(total = nrow(table_data))
     
     table_data %>%
-       group_by(description, total) %>%
+       group_by(pitch_name, total) %>%
        summarise(count = n()) %>%
        mutate(share = count/total) %>%
-       select(description, count, share) %>%
+       select(pitch_name, count, share) %>%
        arrange(desc(count))
    },
+   striped = TRUE,
    bordered = TRUE,
    spacing = "s")
    
-   output$allPitchTable <- renderTable({
+   output$allTable2 <- renderTable({
      table_data <- trout_data %>%
        filter(pitch_name %in% input$pitches,
               description %in% input$results,
@@ -150,14 +169,36 @@ server <- function(input, output) {
        mutate(total = nrow(table_data))
      
      table_data %>%
-       group_by(pitch_name, total) %>%
+       group_by(description, total) %>%
        summarise(count = n()) %>%
        mutate(share = count/total) %>%
-       select(pitch_name, count, share) %>%
+       select(description, count, share) %>%
        arrange(desc(count))
    },
+   striped = TRUE,
    bordered = TRUE,
    spacing = "s")   
+   
+   output$allTable3 <- renderTable({
+     table_data <- trout_data %>%
+       filter(pitch_name %in% input$pitches,
+              description %in% input$results,
+              balls %in% (input$balls[1]:input$balls[2]),
+              strikes %in% (input$strikes[1]:input$strikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+     
+     table_data %>%
+       group_by(zone, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(zone, count, share) %>%
+       arrange(desc(count)) %>%
+       head(n = 10L)
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "s") 
    
 }
 
