@@ -7,28 +7,33 @@ trout_data <- read_rds("trout_data") # Data prepared in data downloader file
 
 # Everything encased in this UI defines the layout of the app
 ui <- fluidPage(
+   # App theme(color/text scheme) and App Title
    theme = shinytheme("yeti"),
    titlePanel("Pitching To Mike Trout 2017-2020: A Shiny App by Michael Calabro"),
-   navbarPage("Navbar",
+   # navbarPage creates tabs at the top of the app to switch between
+   navbarPage("Navbar", 
+   # Everything within this tabPanel function is shown when the "All Pitches" tab is clicked
    tabPanel("All Pitches",
+        # Every column() function creates a column on the screen, and the number associated column(3) is its width
         column(3, 
-         selectInput("pitches",
-                     "Pitches to include:",
-                     c("2-Seam Fastball",
+         # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
+         selectInput("pitches",              # The first argument is a label that can be referenced in the server
+                     "Pitches to include:",  # The second argument is the label that will be shown in the App
+                     c("2-Seam Fastball",    # These are all the possible options for the user to pick from
                        "4-Seam Fastball",
                        "Changeup",
                        "Curveball",
                        "Cutter",
                        "Sinker",
                        "Slider"),
-                     selected = c("2-Seam Fastball",
+                     selected = c("2-Seam Fastball", # These are the options that are selected when you open the app
                                   "4-Seam Fastball",
                                   "Changeup",
                                   "Curveball",
                                   "Cutter",
                                   "Sinker",
                                   "Slider"),
-                     multiple = TRUE),
+                     multiple = TRUE),               # Allows you to pick multiple options
          selectInput("results",
                      "Pitch Results to include:",
                      c("Ball" = "ball",
@@ -61,29 +66,33 @@ ui <- fluidPage(
                        "Point: Color = Pitch Result" = "Ppr",
                        "Bin: Color = Pitch Count" = "Bpc"),
                      selected = "Bpc"),
+         # br() creates space between widgets
          br(),
          checkboxInput("nums",
                        "Show Zone Numbers:",
                        value = TRUE)
         ),
-
+      # New column every time this function is called
       column(4,
+         # "allPlot" is defined in the server, and then is called here in the UI to be shown on screen
+         # The same goes for any function that ends in 'Output' (plotOutput, tableOutput...)
          plotOutput("allPlot", height = "530px"),
          img(src="plate.png", width = "70%", height = "50px")
       ),
       
       column(2,
              br(),
-             tableOutput("allTable3")
+             tableOutput("zoneTable")
       ),
       
       column(3,
          br(),
-         tableOutput("allTable1"),
+         tableOutput("typeTable"),
          br(),
-         tableOutput("allTable2")
+         tableOutput("resultTable2")
       )
    ),
+   # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
    tabPanel("Batted Balls",
      h2("Coming Soon!")
    )
@@ -92,10 +101,17 @@ ui <- fluidPage(
 
 
 
+# The server is where all the data manipulation and plot making takes place
+# In here I create different plots and tables which can react to inputs from the UI's widgets
 server <- function(input, output) {
    
+   # Each output$... creates an item (plot/table/text) that can be called in the UI
+   # When you see plotOutput("allPlot") in the UI, it calls everything encased in this renderPlot() function
+   #
+   #This particular Plot is the strikezone plot on the "All Pitches" page
    output$allPlot <- renderPlot({
      
+     # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
      num_x <- c(-.66, 0, .66, -.66, 0, .66, -.66, 0, .66, -1.3, 1.3, -1.3, 1.3)
      num_y <- c(1.95, 1.95, 1.95, 2.55, 2.55, 2.55, 3.15, 3.15, 3.15, 3.7, 3.7, 1.4, 1.4)
      val <- c(7, 8, 9, 4, 5, 6, 1, 2, 3, 11, 12, 13, 14)
@@ -144,7 +160,7 @@ server <- function(input, output) {
              panel.background = element_blank())
    })
    
-   output$allTable1 <- renderTable({
+   output$typeTable <- renderTable({
     table_data <- trout_data %>%
       mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                   ifelse(description == "hit_into_play", "in_play_out", description))) %>%
@@ -166,7 +182,7 @@ server <- function(input, output) {
    bordered = TRUE,
    spacing = "s")
    
-   output$allTable2 <- renderTable({
+   output$resultTable <- renderTable({
      table_data <- trout_data %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
@@ -188,7 +204,7 @@ server <- function(input, output) {
    bordered = TRUE,
    spacing = "s")   
    
-   output$allTable3 <- renderTable({
+   output$zoneTable <- renderTable({
      table_data <- trout_data %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
