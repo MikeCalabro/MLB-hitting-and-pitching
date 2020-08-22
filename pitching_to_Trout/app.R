@@ -81,17 +81,34 @@ ui <- fluidPage(
          img(src="plate.png", width = "70%", height = "50px")
       ),
       
-      column(2,
-             br(),
-             tableOutput("zoneTable")
-      ),
-      
-      column(3,
-         br(),
-         tableOutput("typeTable"),
-         br(),
-         tableOutput("resultTable")
-      )
+      column(5,
+             tabsetPanel(
+               tabPanel("Tables",
+                        column(5,
+                               br(),
+                               tableOutput("zoneTable")
+                        ),
+                        
+                        column(7,
+                               br(),
+                               tableOutput("typeTable"),
+                               br(),
+                               tableOutput("resultTable")
+                        )
+                        ),
+               tabPanel("Pie Charts",
+                        column(6,
+                               br(), br(), br(),
+                               plotOutput("zonePie", height = "280px")
+                               ),
+                        column(6,
+                               plotOutput("typePie", height = "280px"),
+                               plotOutput("resultPie", height = "280px")
+                               )
+                        )
+             )
+          )
+
    ),
    # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
    tabPanel("Batted Balls",
@@ -355,6 +372,89 @@ server <- function(input, output) {
    bordered = TRUE,
    spacing = "s") 
    
+   output$zonePie <- renderPlot({
+     table_data <- trout_data %>%
+       mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
+                                   ifelse(description == "hit_into_play", "in_play_out", description))) %>%
+       filter(pitch_name %in% input$pitches,
+              description %in% input$results,
+              balls %in% (input$balls[1]:input$balls[2]),
+              strikes %in% (input$strikes[1]:input$strikes[2]))
+     
+     pie_data <- table_data %>%
+       mutate(total = nrow(table_data)) %>%
+       group_by(zone, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       mutate(zone = as.integer(zone)) %>%
+       select(zone, count, share)
+     
+     pie_data %>%
+       ggplot(aes(x="", y=share, fill=zone))+
+       geom_bar(width = 1, stat = "identity") +
+       coord_polar("y", start=0) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+   })
+   
+   output$typePie <- renderPlot({
+     table_data <- trout_data %>%
+       mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
+                                   ifelse(description == "hit_into_play", "in_play_out", description))) %>%
+       filter(pitch_name %in% input$pitches,
+              description %in% input$results,
+              balls %in% (input$balls[1]:input$balls[2]),
+              strikes %in% (input$strikes[1]:input$strikes[2]))
+     
+     pie_data <- table_data %>%
+       mutate(total = nrow(table_data)) %>%
+       group_by(pitch_name, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(pitch_name, count, share)
+     
+     pie_data %>%
+       ggplot(aes(x="", y=share, fill=pitch_name))+
+       geom_bar(width = 1, stat = "identity") +
+       coord_polar("y", start=0) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+   })
+   
+   output$resultPie <- renderPlot({
+     table_data <- trout_data %>%
+       mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
+                                   ifelse(description == "hit_into_play", "in_play_out", description))) %>%
+       filter(pitch_name %in% input$pitches,
+              description %in% input$results,
+              balls %in% (input$balls[1]:input$balls[2]),
+              strikes %in% (input$strikes[1]:input$strikes[2]))
+     
+     pie_data <- table_data %>%
+       mutate(total = nrow(table_data)) %>%
+       group_by(description, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(description, count, share)
+     
+     pie_data %>%
+       ggplot(aes(x="", y=share, fill=description))+
+       geom_bar(width = 1, stat = "identity") +
+       coord_polar("y", start=0) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+   })
+   
+      
    output$bbPlot <- renderPlot({
      
      # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
