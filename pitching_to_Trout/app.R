@@ -502,4 +502,3 @@ server <- function(input, output) {
 
 # Glues it all together and runs the application 
 shinyApp(ui = ui, server = server)
-
