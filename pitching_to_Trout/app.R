@@ -16,6 +16,7 @@ ui <- fluidPage(
    tabPanel("All Pitches",
         # Every column() function creates a column on the screen, and the number associated column(3) is its width
         column(3, 
+               style = "background-color:#D3D3D3;",
          # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
          selectInput("pitches",              # The first argument is a label that can be referenced in the server
                      "Pitches to include:",  # The second argument is the label that will be shown in the App
@@ -159,16 +160,25 @@ ui <- fluidPage(
                    plotOutput("bbPlot", height = "530px"),
                    img(src="plate.png", width = "68%", height = "50px")
             ),
-            column(2,
-                   br(),
-                   tableOutput("bbZoneTable")
-            ),
-            column(3,
-                   br(),
-                   tableOutput("bbPitchTable"),
-                   tableOutput("bbFlightTable"),
-                   tableOutput("bbEventTable")
+            column(5,
+            tabsetPanel(
+              tabPanel("Tables",
+                       
+                              column(5,
+                                     br(),
+                                     tableOutput("bbZoneTable")
+                              ),
+                              column(7,
+                                     br(),
+                                     tableOutput("bbPitchTable"),
+                                     tableOutput("bbFlightTable"),
+                                     tableOutput("bbEventTable")
+                              )
+                          ),
+                       
+              tabPanel("Charts")
             )
+          )
             
    )
    
@@ -434,7 +444,8 @@ server <- function(input, output) {
        summarise(count = n()) %>%
        mutate(share = count/total) %>%
        select(pitch_name, count, share) %>%
-       arrange(desc(count))
+       arrange(desc(count)) %>%
+       head(n = 6L)
    },
    striped = TRUE,
    bordered = TRUE,
@@ -492,7 +503,8 @@ server <- function(input, output) {
        summarise(count = n()) %>%
        mutate(share = count/total) %>%
        select(events, count, share) %>%
-       arrange(desc(count))
+       arrange(desc(count)) %>%
+       head(n = 4L)
    },
    striped = TRUE,
    bordered = TRUE,
