@@ -83,6 +83,16 @@ ui <- fluidPage(
       
       column(5,
              tabsetPanel(
+               tabPanel("Pie Charts",
+                        column(6,
+                               br(), br(), br(), br(),
+                               plotOutput("Pie1", height = "280px")
+                        ),
+                        column(6,
+                               plotOutput("Pie2", height = "240px"),
+                               plotOutput("Pie3", height = "240px")
+                        )
+               ),
                tabPanel("Tables",
                         column(5,
                                br(),
@@ -95,17 +105,8 @@ ui <- fluidPage(
                                br(),
                                tableOutput("resultTable")
                         )
-                        ),
-               tabPanel("Pie Charts",
-                        column(6,
-                               br(), br(), br(), br(),
-                               plotOutput("zonePie", height = "280px")
-                               ),
-                        column(6,
-                               plotOutput("typePie", height = "280px"),
-                               plotOutput("resultPie", height = "280px")
-                               )
                         )
+               
              )
           )
 
@@ -372,7 +373,7 @@ server <- function(input, output) {
    bordered = TRUE,
    spacing = "s") 
    
-   output$zonePie <- renderPlot({
+   output$Pie1 <- renderPlot({
      table_data <- trout_data %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
@@ -381,26 +382,65 @@ server <- function(input, output) {
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2]))
      
-     pie_data <- table_data %>%
-       mutate(total = nrow(table_data)) %>%
-       group_by(zone, total) %>%
-       summarise(count = n()) %>%
-       mutate(share = count/total) %>%
-       mutate(zone = as.integer(zone)) %>%
-       select(zone, count, share)
+    if(input$geom == "Bpc"){
+      pie_data <- table_data %>%
+        mutate(total = nrow(table_data)) %>%
+        group_by(zone, total) %>%
+        summarise(count = n()) %>%
+        mutate(share = count/total) %>%
+        mutate(zone = as.integer(zone)) %>%
+        select(zone, count, share)
+      
+      pie_data %>%
+        ggplot(aes(x="", y=share, fill=zone))+
+        geom_bar(width = 1, stat = "identity") +
+        coord_polar("y", start=0) +
+        theme(axis.ticks = element_blank(),
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank(),
+              panel.background = element_blank())
+    }else if(input$geom == "Ppt"){
+      pie_data <- table_data %>%
+        mutate(total = nrow(table_data)) %>%
+        group_by(pitch_name, total) %>%
+        summarise(count = n()) %>%
+        mutate(share = count/total) %>%
+        select(pitch_name, count, share)
+      
+      pie_data %>%
+        ggplot(aes(x="", y=share, fill=pitch_name))+
+        geom_bar(width = 1, stat = "identity") +
+        coord_polar("y", start=0) +
+        theme(axis.ticks = element_blank(),
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank(),
+              panel.background = element_blank(),
+              legend.position = "none")
+    }else if(input$geom == "Ppr"){
+      pie_data <- table_data %>%
+        mutate(total = nrow(table_data)) %>%
+        group_by(description, total) %>%
+        summarise(count = n()) %>%
+        mutate(share = count/total) %>%
+        select(description, count, share)
+      
+      pie_data %>%
+        ggplot(aes(x="", y=share, fill=description))+
+        geom_bar(width = 1, stat = "identity") +
+        coord_polar("y", start=0) +
+        theme(axis.ticks = element_blank(),
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank(),
+              panel.background = element_blank(),
+              legend.position = "none")
+    }
      
-     pie_data %>%
-       ggplot(aes(x="", y=share, fill=zone))+
-       geom_bar(width = 1, stat = "identity") +
-       coord_polar("y", start=0) +
-       theme(axis.ticks = element_blank(),
-             axis.text = element_blank(),
-             axis.title = element_blank(),
-             panel.grid = element_blank(),
-             panel.background = element_blank())
    })
    
-   output$typePie <- renderPlot({
+   output$Pie2 <- renderPlot({
      table_data <- trout_data %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
@@ -409,25 +449,62 @@ server <- function(input, output) {
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2]))
      
-     pie_data <- table_data %>%
-       mutate(total = nrow(table_data)) %>%
-       group_by(pitch_name, total) %>%
-       summarise(count = n()) %>%
-       mutate(share = count/total) %>%
-       select(pitch_name, count, share)
-     
-     pie_data %>%
-       ggplot(aes(x="", y=share, fill=pitch_name))+
-       geom_bar(width = 1, stat = "identity") +
-       coord_polar("y", start=0) +
-       theme(axis.ticks = element_blank(),
-             axis.text = element_blank(),
-             axis.title = element_blank(),
-             panel.grid = element_blank(),
-             panel.background = element_blank())
+     if(input$geom == "Ppt"){
+       pie_data <- table_data %>%
+         mutate(total = nrow(table_data)) %>%
+         group_by(zone, total) %>%
+         summarise(count = n()) %>%
+         mutate(share = count/total) %>%
+         mutate(zone = as.integer(zone)) %>%
+         select(zone, count, share)
+       
+       pie_data %>%
+         ggplot(aes(x="", y=share, fill=zone))+
+         geom_bar(width = 1, stat = "identity") +
+         coord_polar("y", start=0) +
+         theme(axis.ticks = element_blank(),
+               axis.text = element_blank(),
+               axis.title = element_blank(),
+               panel.grid = element_blank(),
+               panel.background = element_blank())
+     }else if(input$geom == "Bpc"){
+       pie_data <- table_data %>%
+         mutate(total = nrow(table_data)) %>%
+         group_by(pitch_name, total) %>%
+         summarise(count = n()) %>%
+         mutate(share = count/total) %>%
+         select(pitch_name, count, share)
+       
+       pie_data %>%
+         ggplot(aes(x="", y=share, fill=pitch_name))+
+         geom_bar(width = 1, stat = "identity") +
+         coord_polar("y", start=0) +
+         theme(axis.ticks = element_blank(),
+               axis.text = element_blank(),
+               axis.title = element_blank(),
+               panel.grid = element_blank(),
+               panel.background = element_blank())
+     }else if(input$geom == "Ppr"){
+       pie_data <- table_data %>%
+         mutate(total = nrow(table_data)) %>%
+         group_by(pitch_name, total) %>%
+         summarise(count = n()) %>%
+         mutate(share = count/total) %>%
+         select(pitch_name, count, share)
+       
+       pie_data %>%
+         ggplot(aes(x="", y=share, fill=pitch_name))+
+         geom_bar(width = 1, stat = "identity") +
+         coord_polar("y", start=0) +
+         theme(axis.ticks = element_blank(),
+               axis.text = element_blank(),
+               axis.title = element_blank(),
+               panel.grid = element_blank(),
+               panel.background = element_blank())
+     }
    })
    
-   output$resultPie <- renderPlot({
+   output$Pie3 <- renderPlot({
      table_data <- trout_data %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
@@ -436,22 +513,58 @@ server <- function(input, output) {
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2]))
      
-     pie_data <- table_data %>%
-       mutate(total = nrow(table_data)) %>%
-       group_by(description, total) %>%
-       summarise(count = n()) %>%
-       mutate(share = count/total) %>%
-       select(description, count, share)
-     
-     pie_data %>%
-       ggplot(aes(x="", y=share, fill=description))+
-       geom_bar(width = 1, stat = "identity") +
-       coord_polar("y", start=0) +
-       theme(axis.ticks = element_blank(),
-             axis.text = element_blank(),
-             axis.title = element_blank(),
-             panel.grid = element_blank(),
-             panel.background = element_blank())
+     if(input$geom == "Ppt"){
+       pie_data <- table_data %>%
+         mutate(total = nrow(table_data)) %>%
+         group_by(description, total) %>%
+         summarise(count = n()) %>%
+         mutate(share = count/total) %>%
+         select(description, count, share)
+       
+       pie_data %>%
+         ggplot(aes(x="", y=share, fill=description))+
+         geom_bar(width = 1, stat = "identity") +
+         coord_polar("y", start=0) +
+         theme(axis.ticks = element_blank(),
+               axis.text = element_blank(),
+               axis.title = element_blank(),
+               panel.grid = element_blank(),
+               panel.background = element_blank())
+     }else if(input$geom == "Bpc"){
+       pie_data <- table_data %>%
+         mutate(total = nrow(table_data)) %>%
+         group_by(description, total) %>%
+         summarise(count = n()) %>%
+         mutate(share = count/total) %>%
+         select(description, count, share)
+       
+       pie_data %>%
+         ggplot(aes(x="", y=share, fill=description))+
+         geom_bar(width = 1, stat = "identity") +
+         coord_polar("y", start=0) +
+         theme(axis.ticks = element_blank(),
+               axis.text = element_blank(),
+               axis.title = element_blank(),
+               panel.grid = element_blank(),
+               panel.background = element_blank())
+     }else if(input$geom == "Ppr"){
+       pie_data <- table_data %>%
+         mutate(total = nrow(table_data)) %>%
+         group_by(zone, total) %>%
+         summarise(count = n()) %>%
+         mutate(share = count/total) %>%
+         select(zone, count, share)
+       
+       pie_data %>%
+         ggplot(aes(x="", y=share, fill=zone))+
+         geom_bar(width = 1, stat = "identity") +
+         coord_polar("y", start=0) +
+         theme(axis.ticks = element_blank(),
+               axis.text = element_blank(),
+               axis.title = element_blank(),
+               panel.grid = element_blank(),
+               panel.background = element_blank())
+     }
    })
    
       
