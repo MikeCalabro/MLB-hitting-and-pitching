@@ -150,14 +150,26 @@ ui <- fluidPage(
                    selectInput("bbgeom",
                                "Select Geom Display",
                                c("Point: Color = Event" = "Pe",
-                                 "Point: Color = Ball Flight" = "Pbf"
+                                 "Point: Color = Ball Flight" = "Pbf",
+                                 "Point: Color = Pitch Type" = "Ppt"
                                  ),
                                selected = "Pe")
             ),
             column(4,
                    plotOutput("bbPlot", height = "530px"),
                    img(src="plate.png", width = "68%", height = "50px")
+            ),
+            column(2,
+                   br(),
+                   tableOutput("bbZoneTable")
+            ),
+            column(3,
+                   br(),
+                   tableOutput("bbPitchTable"),
+                   tableOutput("bbFlightTable"),
+                   tableOutput("bbEventTable")
             )
+            
    )
    
    )
@@ -353,6 +365,8 @@ server <- function(input, output) {
            geom_point(aes(fill = events), shape = 21, size = 3, color = "black", stroke = 0.5)
          }else if(input$bbgeom == "Pbf"){
            geom_point(aes(fill = bb_type), shape = 21, size = 3, color = "black", stroke = 0.5)
+         }else if(input$bbgeom == "Ppt"){
+           geom_point(aes(fill = pitch_name), shape = 21, size = 3, color = "black", stroke = 0.5)
          }
        } +
        geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black") +
@@ -367,6 +381,123 @@ server <- function(input, output) {
              panel.background = element_blank())
    })
    
+   output$bbZoneTable <- renderTable({
+     table_data <- trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(type == "X",
+              pitch_name %in% input$bbpitches,
+              events %in% input$bbevents,
+              bb_type %in% input$bbflights,
+              balls %in% (input$bbballs[1]:input$bbballs[2]),
+              strikes %in% (input$bbstrikes[1]:input$bbstrikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+     
+     table_data %>%
+       group_by(zone, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       mutate(zone = as.integer(zone)) %>%
+       select(zone, count, share) %>%
+       arrange(desc(count))
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "s")
+   
+   output$bbPitchTable <- renderTable({
+     table_data <- trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(type == "X",
+              pitch_name %in% input$bbpitches,
+              events %in% input$bbevents,
+              bb_type %in% input$bbflights,
+              balls %in% (input$bbballs[1]:input$bbballs[2]),
+              strikes %in% (input$bbstrikes[1]:input$bbstrikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+     
+     table_data %>%
+       group_by(pitch_name, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(pitch_name, count, share) %>%
+       arrange(desc(count))
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "s")
+   
+   output$bbFlightTable <- renderTable({
+     table_data <- trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(type == "X",
+              pitch_name %in% input$bbpitches,
+              events %in% input$bbevents,
+              bb_type %in% input$bbflights,
+              balls %in% (input$bbballs[1]:input$bbballs[2]),
+              strikes %in% (input$bbstrikes[1]:input$bbstrikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+     
+     table_data %>%
+       group_by(bb_type, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(bb_type, count, share) %>%
+       arrange(desc(count))
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "s")
+   
+   output$bbEventTable <- renderTable({
+     table_data <- trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(type == "X",
+              pitch_name %in% input$bbpitches,
+              events %in% input$bbevents,
+              bb_type %in% input$bbflights,
+              balls %in% (input$bbballs[1]:input$bbballs[2]),
+              strikes %in% (input$bbstrikes[1]:input$bbstrikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+     
+     table_data %>%
+       group_by(events, total) %>%
+       summarise(count = n()) %>%
+       mutate(share = count/total) %>%
+       select(events, count, share) %>%
+       arrange(desc(count))
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "s") 
+     
 }
 
 # Glues it all together and runs the application 
