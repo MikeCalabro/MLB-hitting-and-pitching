@@ -16,7 +16,13 @@ ui <- fluidPage(
    tabPanel("All Pitches",
         # Every column() function creates a column on the screen, and the number associated column(3) is its width
         column(3, 
-               style = "background-color:#D3D3D3;",
+         style = "background-color:#D3D3D3;",
+         selectInput("geom",
+                     "Select Geom Display",
+                     c("Point: Color = Pitch Type" = "Ppt",
+                       "Point: Color = Pitch Result" = "Ppr",
+                       "Bin: Color = Pitch Count" = "Bpc"),
+                     selected = "Bpc"),
          # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
          selectInput("pitches",              # The first argument is a label that can be referenced in the server
                      "Pitches to include:",  # The second argument is the label that will be shown in the App
@@ -61,12 +67,6 @@ ui <- fluidPage(
                      max = 2,
                      value = c(0, 2)
                      ),
-         selectInput("geom",
-                     "Select Geom Display",
-                     c("Point: Color = Pitch Type" = "Ppt",
-                       "Point: Color = Pitch Result" = "Ppr",
-                       "Bin: Color = Pitch Count" = "Bpc"),
-                     selected = "Bpc"),
          # br() creates space between widgets
          br(),
          checkboxInput("nums",
@@ -97,6 +97,15 @@ ui <- fluidPage(
    tabPanel("Batted Balls",
             column(3, 
                    style = "background-color:#D3D3D3;",
+                   selectInput("bbgeom",
+                               "Select Geom Display",
+                               c("Point: Color = Event" = "Pe",
+                                 "Point: Color = Ball Flight" = "Pbf",
+                                 "Point: Color = Pitch Type" = "Ppt",
+                                 "Point: Color = Launch Speed" = "Pls",
+                                 "Point: Color = Launch Angle" = "Pla"
+                               ),
+                               selected = "Pe"),
                    selectInput("bbpitches",              
                                "Pitches to include:",  
                                c("2-Seam Fastball",    
@@ -154,25 +163,17 @@ ui <- fluidPage(
                    column(6,
                           sliderInput("bbAngle",
                                       "Lauch Angle Range",
-                                      min = -50,
+                                      min = -40,
                                       max = 70,
-                                      value = c(-50, 70)),
+                                      value = c(-40, 70)),
                           sliderInput("bbSpeed",
                                       "Launch Speed Range",
                                       min = 0,
-                                      max = 130,
-                                      value = c(0, 130)
+                                      max = 120,
+                                      value = c(0, 120)
                           )
-                   ),
-                   selectInput("bbgeom",
-                               "Select Geom Display",
-                               c("Point: Color = Event" = "Pe",
-                                 "Point: Color = Ball Flight" = "Pbf",
-                                 "Point: Color = Pitch Type" = "Ppt",
-                                 "Point: Color = Launch Speed" = "Pls",
-                                 "Point: Color = Launch Angle" = "Pla"
-                                 ),
-                               selected = "Pe")
+                   )
+                   
             ),
             column(4,
                    plotOutput("bbPlot", height = "530px"),
@@ -195,7 +196,7 @@ ui <- fluidPage(
                           ),
                        
               tabPanel("Launch Chart",
-                       plotOutput("launchPlot")
+                       plotOutput("launchPlot", height = "350px")
                        
                     )
             )
@@ -565,21 +566,29 @@ server <- function(input, output) {
        ggplot() +
        {
          if(input$bbgeom == "Pbf"){
-           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = bb_type))
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed*cos(launch_angle*pi/180),
+                            yend = launch_speed*sin(launch_angle*pi/180), color = bb_type))
          }else if(input$bbgeom == "Pls"){
-           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = launch_speed))
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed*cos(launch_angle*pi/180),
+                            yend = launch_speed*sin(launch_angle*pi/180), color = launch_speed))
          }else if(input$bbgeom == "Pe"){
-           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = events))
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed*cos(launch_angle*pi/180),
+                            yend = launch_speed*sin(launch_angle*pi/180), color = events))
          }else if(input$bbgeom == "Ppt"){
-           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = pitch_name))
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed*cos(launch_angle*pi/180),
+                            yend = launch_speed*sin(launch_angle*pi/180), color = pitch_name))
+         }else if(input$bbgeom == "Pla"){
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed*cos(launch_angle*pi/180),
+                            yend = launch_speed*sin(launch_angle*pi/180), color = launch_angle))
          }
        } +
-       geom_hline(yintercept = -0.25) +
+       geom_hline(yintercept = -10) +
        theme(axis.ticks = element_blank(),
              axis.text = element_blank(),
              axis.title = element_blank(),
              panel.grid = element_blank(),
-             panel.background = element_blank())
+             panel.background = element_blank(),
+             legend.position = "none")
    })
      
 }
