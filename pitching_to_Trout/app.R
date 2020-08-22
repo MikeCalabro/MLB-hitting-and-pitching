@@ -233,7 +233,7 @@ server <- function(input, output) {
    
    # Each output$... creates an item (plot/table/text) that can be called in the UI
    # When you see plotOutput("allPlot") in the UI, it calls everything encased in this renderPlot() function
-   #
+
    #This particular Plot is the strikezone plot on the "All Pitches" page
    output$allPlot <- renderPlot({
      
@@ -565,7 +565,6 @@ server <- function(input, output) {
      }
    })
    
-      
    output$bbPlot <- renderPlot({
      
      # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
