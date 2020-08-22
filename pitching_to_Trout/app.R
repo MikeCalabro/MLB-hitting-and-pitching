@@ -416,8 +416,7 @@ server <- function(input, output) {
               axis.text = element_blank(),
               axis.title = element_blank(),
               panel.grid = element_blank(),
-              panel.background = element_blank(),
-              legend.position = "none")
+              panel.background = element_blank())
     }else if(input$geom == "Ppr"){
       pie_data <- table_data %>%
         mutate(total = nrow(table_data)) %>%
@@ -434,8 +433,7 @@ server <- function(input, output) {
               axis.text = element_blank(),
               axis.title = element_blank(),
               panel.grid = element_blank(),
-              panel.background = element_blank(),
-              legend.position = "none")
+              panel.background = element_blank())
     }
      
    })
