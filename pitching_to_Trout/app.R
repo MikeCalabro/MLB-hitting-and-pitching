@@ -96,6 +96,7 @@ ui <- fluidPage(
    # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
    tabPanel("Batted Balls",
             column(3, 
+                   style = "background-color:#D3D3D3;",
                    selectInput("bbpitches",              
                                "Pitches to include:",  
                                c("2-Seam Fastball",    
@@ -137,6 +138,7 @@ ui <- fluidPage(
                                             "home_run",
                                             "field_out"),
                                multiple = TRUE),
+                   column(6,
                    sliderInput("bbballs",
                                "Balls in the Count",
                                min = 0,
@@ -147,12 +149,28 @@ ui <- fluidPage(
                                min = 0,
                                max = 2,
                                value = c(0, 2)
+                      )
+                   ),
+                   column(6,
+                          sliderInput("bbAngle",
+                                      "Lauch Angle Range",
+                                      min = -50,
+                                      max = 90,
+                                      value = c(-50, 90)),
+                          sliderInput("bbSpeed",
+                                      "Launch Speed Range",
+                                      min = 0,
+                                      max = 130,
+                                      value = c(0, 130)
+                          )
                    ),
                    selectInput("bbgeom",
                                "Select Geom Display",
                                c("Point: Color = Event" = "Pe",
                                  "Point: Color = Ball Flight" = "Pbf",
-                                 "Point: Color = Pitch Type" = "Ppt"
+                                 "Point: Color = Pitch Type" = "Ppt",
+                                 "Point: Color = Launch Speed" = "Pls",
+                                 "Point: Color = Launch Angle" = "Pla"
                                  ),
                                selected = "Pe")
             ),
@@ -351,6 +369,8 @@ server <- function(input, output) {
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
        filter(type == "X",
+              launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -377,6 +397,10 @@ server <- function(input, output) {
            geom_point(aes(fill = bb_type), shape = 21, size = 3, color = "black", stroke = 0.5)
          }else if(input$bbgeom == "Ppt"){
            geom_point(aes(fill = pitch_name), shape = 21, size = 3, color = "black", stroke = 0.5)
+         }else if(input$bbgeom == "Pla"){
+           geom_point(aes(fill = launch_angle), shape = 21, size = 3, color = "black", stroke = 0.5)
+         }else if(input$bbgeom == "Pls"){
+           geom_point(aes(fill = launch_speed), shape = 21, size = 3, color = "black", stroke = 0.5)
          }
        } +
        geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black") +
@@ -401,6 +425,8 @@ server <- function(input, output) {
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
        filter(type == "X",
+              launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -431,6 +457,8 @@ server <- function(input, output) {
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
        filter(type == "X",
+              launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -461,6 +489,8 @@ server <- function(input, output) {
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
        filter(type == "X",
+              launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -490,6 +520,8 @@ server <- function(input, output) {
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
        filter(type == "X",
+              launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
