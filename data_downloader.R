@@ -25,7 +25,7 @@ write_rds(trout_data, path = "pitching_to_Trout/trout_data")
 
 # WORD
 # Now I need to learn how to plot a pitch in a strikezone
-
+#
 # Important variables:
 #
 # sz_top    - top of the strike zone (coordinate)
@@ -62,10 +62,25 @@ trout_data %>%
         panel.background = element_blank())
 
 
-trout_data %>%
-  filter(!is.na(sz_bot)) %>%
-  summarise(btm = mean(sz_bot))
-3.48-1.64
-1.84/3
-3.48+.614
-1.64 - .614
+# OKAY
+# Now I want to plot a side-view that shows the launch angle and launch speed of hit balls
+#
+# Only variables I need are:
+# Launch Speed - defines the length of the line
+# Launch Direction - defines the direction of the line
+# All lines will start at 0,0
+# Then an h-line will represent the ground
+
+test <- trout_data %>%
+  filter(type == "X") %>%
+  head(n = 20L)
+
+test %>%
+  ggplot() +
+  geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = bb_type)) +
+  geom_hline(yintercept = -0.25) +
+  theme(axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.grid = element_blank(),
+        panel.background = element_blank())

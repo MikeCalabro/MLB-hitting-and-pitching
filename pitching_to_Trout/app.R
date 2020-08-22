@@ -155,8 +155,8 @@ ui <- fluidPage(
                           sliderInput("bbAngle",
                                       "Lauch Angle Range",
                                       min = -50,
-                                      max = 90,
-                                      value = c(-50, 90)),
+                                      max = 70,
+                                      value = c(-50, 70)),
                           sliderInput("bbSpeed",
                                       "Launch Speed Range",
                                       min = 0,
@@ -194,7 +194,10 @@ ui <- fluidPage(
                               )
                           ),
                        
-              tabPanel("Charts")
+              tabPanel("Launch Chart",
+                       plotOutput("launchPlot")
+                       
+                    )
             )
           )
             
@@ -541,6 +544,43 @@ server <- function(input, output) {
    striped = TRUE,
    bordered = TRUE,
    spacing = "s") 
+   
+   output$launchPlot <- renderPlot({
+     trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(type == "X",
+              launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              pitch_name %in% input$bbpitches,
+              events %in% input$bbevents,
+              bb_type %in% input$bbflights,
+              balls %in% (input$bbballs[1]:input$bbballs[2]),
+              strikes %in% (input$bbstrikes[1]:input$bbstrikes[2])) %>%
+       ggplot() +
+       {
+         if(input$bbgeom == "Pbf"){
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = bb_type))
+         }else if(input$bbgeom == "Pls"){
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = launch_speed))
+         }else if(input$bbgeom == "Pe"){
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = events))
+         }else if(input$bbgeom == "Ppt"){
+           geom_segment(aes(x = 0, y = 0, xend = launch_speed, yend = sin(launch_angle*pi/180), color = pitch_name))
+         }
+       } +
+       geom_hline(yintercept = -0.25) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+   })
      
 }
 
