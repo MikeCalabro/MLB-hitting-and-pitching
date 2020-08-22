@@ -98,7 +98,7 @@ ui <- fluidPage(
                         ),
                tabPanel("Pie Charts",
                         column(6,
-                               br(), br(), br(),
+                               br(), br(), br(), br(),
                                plotOutput("zonePie", height = "280px")
                                ),
                         column(6,
