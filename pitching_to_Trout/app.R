@@ -181,6 +181,10 @@ ui <- fluidPage(
             ),
             column(5,
             tabsetPanel(
+              tabPanel("Launch Chart",
+                       plotOutput("launchPlot", height = "350px"),
+                       tableOutput("bbLaunchTable")
+              ),
               tabPanel("Tables",
                        
                               column(5,
@@ -193,12 +197,8 @@ ui <- fluidPage(
                                      tableOutput("bbFlightTable"),
                                      tableOutput("bbEventTable")
                               )
-                          ),
+                          )
                        
-              tabPanel("Launch Chart",
-                       plotOutput("launchPlot", height = "350px")
-                       
-                    )
             )
           )
             
@@ -372,7 +372,7 @@ server <- function(input, output) {
                                             "force_out",
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
-       filter(type == "X",
+       filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
               launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
@@ -428,7 +428,7 @@ server <- function(input, output) {
                                             "force_out",
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
-       filter(type == "X",
+       filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
               launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
@@ -460,7 +460,7 @@ server <- function(input, output) {
                                             "force_out",
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
-       filter(type == "X",
+       filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
               launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
@@ -492,7 +492,7 @@ server <- function(input, output) {
                                             "force_out",
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
-       filter(type == "X",
+       filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
               launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
@@ -523,7 +523,7 @@ server <- function(input, output) {
                                             "force_out",
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
-       filter(type == "X",
+       filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
               launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
@@ -555,7 +555,7 @@ server <- function(input, output) {
                                             "force_out",
                                             "grounded_into_double_play",
                                             "sac_fly"), "field_out", events)) %>%
-       filter(type == "X",
+       filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
               launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
               pitch_name %in% input$bbpitches,
@@ -590,6 +590,56 @@ server <- function(input, output) {
              panel.background = element_blank(),
              legend.position = "none")
    })
+   
+   output$bbLaunchTable <- renderTable({
+     table_data <- trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(
+         launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
+         launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+         pitch_name %in% input$bbpitches,
+         events %in% input$bbevents,
+         bb_type %in% input$bbflights,
+         balls %in% (input$bbballs[1]:input$bbballs[2]),
+         strikes %in% (input$bbstrikes[1]:input$bbstrikes[2]))
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data))
+    if(input$bbgeom == "Pe"){
+      table_data %>%
+        group_by(events, total) %>%
+        summarise(count = n(), average_launch_speed = mean(launch_speed), average_launch_angle = mean(launch_angle)) %>%
+        mutate(share = count/total) %>%
+        select(events, count, share, average_launch_speed, average_launch_angle) %>%
+        arrange(desc(count)) %>%
+        head(n = 4L)
+    }else if(input$bbgeom == "Pbf"){
+      table_data %>%
+        group_by(bb_type, total) %>%
+        summarise(count = n(), average_launch_speed = mean(launch_speed), average_launch_angle = mean(launch_angle)) %>%
+        mutate(share = count/total) %>%
+        select(bb_type, count, share, average_launch_speed, average_launch_angle) %>%
+        arrange(desc(count)) %>%
+        head(n = 4L)
+    }else if(input$bbgeom == "Ppt"){
+      table_data %>%
+        group_by(pitch_name, total) %>%
+        summarise(count = n(), average_launch_speed = mean(launch_speed), average_launch_angle = mean(launch_angle)) %>%
+        mutate(share = count/total) %>%
+        select(pitch_name, count, share, average_launch_speed, average_launch_angle) %>%
+        arrange(desc(count)) %>%
+        head(n = 5L)
+    }
+
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "s")
      
 }
 
