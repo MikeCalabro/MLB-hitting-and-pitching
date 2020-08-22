@@ -94,8 +94,72 @@ ui <- fluidPage(
    ),
    # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
    tabPanel("Batted Balls",
-     h2("Coming Soon!")
+            column(3, 
+                   selectInput("bbpitches",              
+                               "Pitches to include:",  
+                               c("2-Seam Fastball",    
+                                 "4-Seam Fastball",
+                                 "Changeup",
+                                 "Curveball",
+                                 "Cutter",
+                                 "Sinker",
+                                 "Slider"),
+                               selected = c("2-Seam Fastball", 
+                                            "4-Seam Fastball",
+                                            "Changeup",
+                                            "Curveball",
+                                            "Cutter",
+                                            "Sinker",
+                                            "Slider"),
+                               multiple = TRUE),
+                   selectInput("bbflights",              
+                               "Ball Flights to include:",  
+                               c("Pop-up" = "popup",    
+                                 "Grounder" = "ground_ball",
+                                 "Fly Ball" = "fly_ball",
+                                 "Line Drive" = "line_drive"),
+                               selected = c("popup",    
+                                            "ground_ball",
+                                            "fly_ball",
+                                            "line_drive"),
+                               multiple = TRUE),
+                   selectInput("bbevents",              
+                               "Events to include:",  
+                               c("Single" = "single",    
+                                 "Double" = "double",
+                                 "Triple" = "triple",
+                                 "Home Run" = "home_run",
+                                 "Field Out" = "field_out"),
+                               selected = c("single",    
+                                            "double",
+                                            "triple",
+                                            "home_run",
+                                            "field_out"),
+                               multiple = TRUE),
+                   sliderInput("bbballs",
+                               "Balls in the Count",
+                               min = 0,
+                               max = 3,
+                               value = c(0, 3)),
+                   sliderInput("bbstrikes",
+                               "Strikes in the Count",
+                               min = 0,
+                               max = 2,
+                               value = c(0, 2)
+                   ),
+                   selectInput("bbgeom",
+                               "Select Geom Display",
+                               c("Point: Color = Event" = "Pe",
+                                 "Point: Color = Ball Flight" = "Pbf"
+                                 ),
+                               selected = "Pe")
+            ),
+            column(4,
+                   plotOutput("bbPlot", height = "530px"),
+                   img(src="plate.png", width = "68%", height = "50px")
+            )
    )
+   
    )
 )
 
@@ -246,6 +310,62 @@ server <- function(input, output) {
    striped = TRUE,
    bordered = TRUE,
    spacing = "s") 
+   
+   output$bbPlot <- renderPlot({
+     
+     # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
+     num_x <- c(-.66, 0, .66, -.66, 0, .66, -.66, 0, .66, -1.3, 1.3, -1.3, 1.3)
+     num_y <- c(1.95, 1.95, 1.95, 2.55, 2.55, 2.55, 3.15, 3.15, 3.15, 3.7, 3.7, 1.4, 1.4)
+     val <- c(7, 8, 9, 4, 5, 6, 1, 2, 3, 11, 12, 13, 14)
+     num_tab <- data.frame(num_x, num_y, val)
+     
+     # Using the data that I downloaded from Statcast using the baseballr package
+     trout_data %>%
+       mutate(events = ifelse(events %in% c("double_play",
+                                            "field_error",
+                                            "fielders_choice",
+                                            "fielders_choice_out",
+                                            "force_out",
+                                            "grounded_into_double_play",
+                                            "sac_fly"), "field_out", events)) %>%
+       filter(type == "X",
+              pitch_name %in% input$bbpitches,
+              events %in% input$bbevents,
+              bb_type %in% input$bbflights,
+              balls %in% (input$bbballs[1]:input$bbballs[2]),
+              strikes %in% (input$bbstrikes[1]:input$bbstrikes[2])) %>%
+       # Now the plot can be defined
+       # The x and y arguments within ggplot define the location of all the points that will be plotted
+       ggplot(aes(x = plate_x, y = plate_z)) +
+       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -1, y = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot),
+                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -1, y = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3),
+                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "gray") +
+       geom_segment(aes(x = -1, y = mean(sz_top), xend = 1, yend = mean(sz_top)), size = 1.5) +
+       geom_segment(aes(x = -1, y = mean(sz_bot), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot)), size = 1.5) +
+       geom_segment(aes(x = 1, y = mean(sz_top), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       # These ifs are used to switch between the color of the points shown on screen (Could be simpler, should fix)
+       {
+         if(input$bbgeom == "Pe"){
+           geom_point(aes(fill = events), shape = 21, size = 3, color = "black", stroke = 0.5)
+         }else if(input$bbgeom == "Pbf"){
+           geom_point(aes(fill = bb_type), shape = 21, size = 3, color = "black", stroke = 0.5)
+         }
+       } +
+       geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black") +
+       # xlim and ylim define the size of the plot
+       ylim(1.03, 4.1) +
+       xlim(-1.67, 1.67) +
+       # All of these element_blank()'s make the canvas blank, unlike base ggplot which has axis/grid defaults
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+   })
    
 }
 
