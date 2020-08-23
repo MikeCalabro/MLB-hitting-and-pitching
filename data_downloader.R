@@ -84,3 +84,28 @@ test %>%
         axis.title = element_blank(),
         panel.grid = element_blank(),
         panel.background = element_blank())
+
+# Something about adding launch speed removes a bunch of obseravtions from the batted balls plot
+# Let us investigate how to fix that
+trout_data %>%
+   filter(type == "X",
+          launch_angle > -40,
+          launch_angle < 70,
+          launch_speed > 0,
+          launch_speed < 120) %>%
+   select(launch_speed, launch_angle) %>%
+   filter(launch_speed %% 1 == 0)
+   
+   
+   
+        
+# I think it has something to do with launch_speed being a double
+# Now I am quite positive that is the case!
+# I could round it to be an integer, which I think would be easy
+# I am going to see if I can change the slider to include decimals, I think that should work but idk
+# 
+# It didn't work... now I am going to look it up online
+# So stupid... I figured it out
+# In my code I use %in% (x:y) and (x:y) makes a list of integers to check
+# Easy fix I hope
+  

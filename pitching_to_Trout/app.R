@@ -188,7 +188,8 @@ ui <- fluidPage(
                                       "Launch Speed Range",
                                       min = 0,
                                       max = 120,
-                                      value = c(0, 120)
+                                      value = c(0, 120),
+                                      step = 0.1
                           )
                    )
                    
@@ -201,7 +202,7 @@ ui <- fluidPage(
             tabsetPanel(
               tabPanel("Launch Chart",
                        column(2,
-                              br(), br(), br(), br(), br(), br(), br(), br(), br(), 
+                              br(), br(), br(), br(), br(), br(), br(), br(), br(),  # Probably a better way to do this
                               img(src="swing.png", height = "80px", width = "80px")),
                        column(10,
                               plotOutput("launchPlot", height = "350px")     
@@ -571,7 +572,9 @@ server <- function(input, output) {
      }
    })
    
+   #
    # ONTO NAV_TAB 2 - BATTED BALLS
+   #
    
    # Creates the strike zone plot
    output$bbPlot <- renderPlot({
@@ -593,7 +596,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              launch_speed > input$bbSpeed[1],
+              launch_speed < input$bbSpeed[2],
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -650,7 +654,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              launch_speed > input$bbSpeed[1],
+              launch_speed < input$bbSpeed[2],
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -683,7 +688,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              launch_speed > input$bbSpeed[1],
+              launch_speed < input$bbSpeed[2],
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -716,7 +722,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              launch_speed > input$bbSpeed[1],
+              launch_speed < input$bbSpeed[2],
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -748,7 +755,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              launch_speed > input$bbSpeed[1],
+              launch_speed < input$bbSpeed[2],
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -781,7 +789,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
               launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-              launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+              launch_speed > input$bbSpeed[1],
+              launch_speed < input$bbSpeed[2],
               pitch_name %in% input$bbpitches,
               events %in% input$bbevents,
               bb_type %in% input$bbflights,
@@ -828,7 +837,8 @@ server <- function(input, output) {
                                             "sac_fly"), "field_out", events)) %>%
        filter(
          launch_angle %in% (input$bbAngle[1]:input$bbAngle[2]),
-         launch_speed %in% (input$bbSpeed[1]:input$bbSpeed[2]),
+         launch_speed > input$bbSpeed[1],
+         launch_speed < input$bbSpeed[2],
          pitch_name %in% input$bbpitches,
          events %in% input$bbevents,
          bb_type %in% input$bbflights,
