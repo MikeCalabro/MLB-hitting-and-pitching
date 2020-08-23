@@ -289,7 +289,7 @@ ui <- fluidPage(
           
           numericInput("psSpeed",
                        "What Is Your Max Fastball Speed?",
-                       value = 93,
+                       value = 98,
                        min = 88,
                        max = 105,
                        step = 1
@@ -310,19 +310,24 @@ ui <- fluidPage(
                                    "Slider"),
                       multiple = TRUE),
           
-          numericInput("psBalls",
-                       "How Many Balls Are In The Count?",
-                       value = 0,
-                       min = 0,
-                       max = 3,
-                       step = 1),
+          column(6,
+                 sliderInput("psBalls",
+                             "Balls In The Count:",
+                             value = c(0,3),
+                             min = 0,
+                             max = 3,
+                             step = 1)
+                 ),
           
-          numericInput("psStrikes",
-                       "How Many Strikes Are In The Count?",
-                       value = 0,
-                       min = 0,
-                       max = 2,
-                       step = 1),
+          column(6,
+                 sliderInput("psStrikes",
+                             "Strikes In The Count:",
+                             value = c(0,2),
+                             min = 0,
+                             max = 2,
+                             step = 1)
+                 ),
+          
           
           selectInput("psBallStrike",
                       "Do You Want To Throw A Strike?",
@@ -333,12 +338,10 @@ ui <- fluidPage(
           selectInput("psGoal",
                       "Your Goal - Minimize the chance of Mike...",
                       c("Swinging at the Pitch" = "swing",
-                        "Hitting the Ball In Play" = "hit in play",
+                        "Hitting the Ball In Play" = "hit_in_play",
                         "Hitting a Home Run" = "homerun",
-                        "Getting an Extra Base Hit" = "xbh",
-                        "Getting a Hit" = "hit",
-                        "Hitting the Ball Hard" = "hit hard",
-                        "Hitting a Line Drive" = "line drive"),
+                        "Hitting the Ball Hard" = "hit_hard",
+                        "Hitting a Line Drive" = "line_drive"),
                       selected = "swing"),
           
           numericInput("psOptions",
@@ -346,11 +349,20 @@ ui <- fluidPage(
                        value = 8,
                        min = 1,
                        max = 20,
+                       step = 1),
+          
+          numericInput("psObs",
+                       "Minimum Number Of Observations To Be Included",
+                       value = 6,
+                       min = 1,
+                       max = 50,
                        step = 1)
           
         ),
         
-        column(9,
+        column(1),
+        
+        column(8,
                tableOutput("psTable")
         )
        
@@ -1022,24 +1034,65 @@ server <- function(input, output) {
    
    # Creates the Main Pitch Selector Table
    output$psTable <- renderTable({
-     trout_data %>%
+     table_data <- trout_data %>%
        filter(release_speed < input$psSpeed + 1,
               pitch_name %in% input$psPitch,
-              balls == input$psBalls,
-              strikes == input$psStrikes,
+              balls %in% (input$psBalls[1]:input$psBalls[2]),
+              strikes %in% (input$psStrikes[1]:input$psStrikes[2]),
               {
                 if(input$psBallStrike == "Yes"){
                   zone %in% (1:9)
                 }else{
                   zone %in% (1:14)
-                }
-              }
-              ) %>%
-       group_by(pitch_name, zone) %>%
-       summarise(observations = n()) %>%
+                }})
+     
+     table_data <- table_data %>%
+       mutate(total = nrow(table_data)) %>%
+       select(pitch_name, zone, total, launch_speed, description, events, bb_type, type)
+       
+     table_data <- fastDummies::dummy_cols(table_data, select_columns = c("description", "events", "bb_type", "type"))
+     
+     final_data <- table_data %>%
+       group_by(pitch_name, zone, total) %>%
+       summarise(observations = n(),
+                 no_swing = sum(description_ball) + sum(description_called_strike),
+                 homerun = sum(events_home_run),
+                 line_drive = sum(bb_type_line_drive),
+                 hit_in_play = sum(type_X),
+                 average_launch_speed = mean(launch_speed, na.rm = TRUE))
+     
+     final_data %>%
+       filter(observations >= input$psObs) %>%
+       mutate(swing_p = 1-(no_swing/observations),
+              homerun_p = homerun/observations,
+              line_drive_p = line_drive/observations,
+              hit_in_play_p = hit_in_play/observations,
+              zone = as.integer(zone)) %>%
+       select(pitch_name, zone, observations, swing_p, hit_in_play_p,
+              homerun_p, average_launch_speed, line_drive_p) %>%
        arrange(desc(observations)) %>%
+       arrange(case_when(
+         input$psGoal == "swing" ~ swing_p,
+         input$psGoal == "hit_in_play" ~ hit_in_play_p,
+         input$psGoal == "homerun" ~ homerun_p,
+         input$psGoal == "hit_hard" ~ average_launch_speed,
+         input$psGoal == "line_drive" ~ line_drive_p
+       )) %>%
+       rename(
+         "Pitch Type" = pitch_name,
+         "Zone" = zone,
+         "Observations" = observations,
+         "Swing %" = swing_p,
+         "Ball Hit In Play %" = hit_in_play_p,
+         "Homerun %" = homerun_p,
+         "Line Drive %" = line_drive_p,
+         "Average Launch Speed" = average_launch_speed
+       ) %>%
        head(input$psOptions)
-   })
+       
+   }, 
+   striped = TRUE,
+   bordered = TRUE)
      
 }
 
