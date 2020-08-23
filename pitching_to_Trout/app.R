@@ -200,7 +200,12 @@ ui <- fluidPage(
             column(5,
             tabsetPanel(
               tabPanel("Launch Chart",
-                       plotOutput("launchPlot", height = "350px"),
+                       column(2,
+                              br(), br(), br(), br(), br(), br(), br(), br(), br(), 
+                              img(src="swing.png", height = "80px", width = "80px")),
+                       column(10,
+                              plotOutput("launchPlot", height = "350px")     
+                              ),
                        tableOutput("bbLaunchTable")
               ),
               tabPanel("Tables",
@@ -802,6 +807,7 @@ server <- function(input, output) {
          }
        } +
        geom_hline(yintercept = -10) +
+       ylim(-35, 80) +
        theme(axis.ticks = element_blank(),
              axis.text = element_blank(),
              axis.title = element_blank(),
