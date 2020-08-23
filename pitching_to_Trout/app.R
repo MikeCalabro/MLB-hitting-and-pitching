@@ -279,7 +279,82 @@ ui <- fluidPage(
                 )
              )
           )
-      )
+      ),
+     
+     tabPanel("Pitch Selector",
+        
+        column(3,
+               
+          style = "background-color:#D3D3D3;",
+          
+          numericInput("psSpeed",
+                       "What Is Your Max Fastball Speed?",
+                       value = 93,
+                       min = 88,
+                       max = 105,
+                       step = 1
+                       ),
+          
+          selectInput("psPitch",
+                      "What Pitches Can You Throw?",
+                      c("2-Seam Fastball",    
+                        "4-Seam Fastball",
+                        "Changeup",
+                        "Curveball",
+                        "Cutter",
+                        "Sinker",
+                        "Slider"),
+                      selected = c("4-Seam Fastball",
+                                   "Changeup",
+                                   "Curveball",
+                                   "Slider"),
+                      multiple = TRUE),
+          
+          numericInput("psBalls",
+                       "How Many Balls Are In The Count?",
+                       value = 0,
+                       min = 0,
+                       max = 3,
+                       step = 1),
+          
+          numericInput("psStrikes",
+                       "How Many Strikes Are In The Count?",
+                       value = 0,
+                       min = 0,
+                       max = 2,
+                       step = 1),
+          
+          selectInput("psBallStrike",
+                      "Do You Want To Throw A Strike?",
+                      c("Yes",
+                        "I Don't Care"),
+                      selected = "Yes"),
+          
+          selectInput("psGoal",
+                      "Your Goal - Minimize the chance of Mike...",
+                      c("Swinging at the Pitch" = "swing",
+                        "Hitting the Ball In Play" = "hit in play",
+                        "Hitting a Home Run" = "homerun",
+                        "Getting an Extra Base Hit" = "xbh",
+                        "Getting a Hit" = "hit",
+                        "Hitting the Ball Hard" = "hit hard",
+                        "Hitting a Line Drive" = "line drive"),
+                      selected = "swing"),
+          
+          numericInput("psOptions",
+                       "How Many Pitch Options Do You Want To Consider?",
+                       value = 8,
+                       min = 1,
+                       max = 20,
+                       step = 1)
+          
+        ),
+        
+        column(9,
+               tableOutput("psTable")
+        )
+       
+     )
    )
 )
 
@@ -940,6 +1015,31 @@ server <- function(input, output) {
    striped = TRUE,
    bordered = TRUE,
    spacing = "s")
+   
+   #
+   # ONTO NAV_TAB 3 - PITCH SELECTOR!
+   #
+   
+   # Creates the Main Pitch Selector Table
+   output$psTable <- renderTable({
+     trout_data %>%
+       filter(release_speed < input$psSpeed + 1,
+              pitch_name %in% input$psPitch,
+              balls == input$psBalls,
+              strikes == input$psStrikes,
+              {
+                if(input$psBallStrike == "Yes"){
+                  zone %in% (1:9)
+                }else{
+                  zone %in% (1:14)
+                }
+              }
+              ) %>%
+       group_by(pitch_name, zone) %>%
+       summarise(observations = n()) %>%
+       arrange(desc(observations)) %>%
+       head(input$psOptions)
+   })
      
 }
 
