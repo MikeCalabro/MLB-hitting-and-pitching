@@ -3,20 +3,34 @@ library(tidyverse)    # Data manipulation and visualization
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
 
-trout_data <- read_rds("trout_data") # Data prepared in data downloader file
+# Data prepared in data downloader file, read into this app using read_rds
+trout_data <- read_rds("trout_data")
 
 # Everything encased in this UI defines the layout of the app
 ui <- fluidPage(
+  
    # App theme(color/text scheme) and App Title
    theme = shinytheme("yeti"),
    titlePanel("Pitching To Mike Trout 2017-2020: A Shiny App by Michael Calabro"),
+   
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
               
-      # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
+      # Everything within this tabPanel function is shown when the "Batted Balls" tab is clicked
       tabPanel("Batted Balls",
+               
+               # Every column() function creates a column on the screen, and the number associated column(3,) is its width
+               # An entire screen fits 12 sections worth of column, so this column takes up 3/12 (.25) of the screen
                column(3, 
+                      
+                      # style.. allows me to set the background color for the column
                       style = "background-color:#D3D3D3;",
+                      
+                      # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
+                      # The first argument is a label that can be referenced in the server
+                      # The second argument is the label that will be shown in the App
+                      # The third argument is a list of all the possible options for the user to pick from
+                      # selected.. defines what is originaly chosen when the user opens the app
                       selectInput("bbgeom",
                                   "Select Geom Display",
                                   c("Point: Color = Event" = "Pe",
@@ -26,6 +40,9 @@ ui <- fluidPage(
                                     "Point: Color = Launch Angle" = "Pla"
                                   ),
                                   selected = "Pbf"),
+                      
+                      # Each Input widget works in similar ways, with slightly different features
+                      # With this select input, for example, I can make multiple selections
                       selectInput("bbpitches",              
                                   "Pitches to include:",  
                                   c("2-Seam Fastball",    
@@ -43,6 +60,7 @@ ui <- fluidPage(
                                                "Sinker",
                                                "Slider"),
                                   multiple = TRUE),
+                      
                       selectInput("bbflights",              
                                   "Ball Flights to include:",  
                                   c("Pop-up" = "popup",    
@@ -54,6 +72,7 @@ ui <- fluidPage(
                                                "fly_ball",
                                                "line_drive"),
                                   multiple = TRUE),
+                      
                       selectInput("bbevents",              
                                   "Events to include:",  
                                   c("Single" = "single",    
@@ -67,18 +86,22 @@ ui <- fluidPage(
                                                "home_run",
                                                "field_out"),
                                   multiple = TRUE),
+                      
+                      # This column is nested within the column above
+                      # Every nested column takes up x/12 of the space it is nested in
+                      # So this column(6,) takes up 6/12 (.5) of the width of the column it is nested in
                       column(6,
                              sliderInput("bbballs",
                                          "Balls in the Count",
                                          min = 0,
                                          max = 3,
                                          value = c(0, 3)),
+                             
                              sliderInput("bbstrikes",
                                          "Strikes in the Count",
                                          min = 0,
                                          max = 2,
-                                         value = c(0, 2)
-                             )
+                                         value = c(0, 2))
                       ),
                       column(6,
                              sliderInput("bbAngle",
@@ -91,45 +114,69 @@ ui <- fluidPage(
                                          min = 0,
                                          max = 120,
                                          value = c(0, 120),
-                                         step = 0.1
-                             )
+                                         step = 0.1)
                       )
                       
                ),
+               
+               # This new column makes up the middle 4/12 of the screen (essentially the 'middle')
                column(4,
+                      
+                      # "bbplot" is defined in the server below as output$bbplot
+                      # if it were a table, it would be called using tableOutput
                       plotOutput("bbPlot", height = "530px"),
+                      
+                      # plate.png is an image i screenshotted on my comp from the internet.. a home plate
                       img(src="plate.png", width = "68%", height = "50px")
                ),
+               
+               # This is the final column on my first screen
                column(5,
-                      tabsetPanel(
-                        tabPanel("Launch Chart",
-                                 column(2,
-                                        br(), br(), br(), br(), br(), br(), br(), br(), br(),  # Probably a better way to do this
-                                        img(src="swing.png", height = "80px", width = "80px")),
-                                 column(10,
-                                        plotOutput("launchPlot", height = "350px")     
-                                 ),
-                                 tableOutput("bbLaunchTable")
-                        ),
-                        tabPanel("Tables",
-                                 
-                                 column(5,
-                                        br(),
-                                        tableOutput("bbZoneTable")
-                                 ),
-                                 column(7,
-                                        br(),
-                                        tableOutput("bbPitchTable"),
-                                        tableOutput("bbFlightTable"),
-                                        tableOutput("bbEventTable")
-                                 )
-                        )
+                      
+                    # tabsetPanel() does the same thing as navbar, except it only cchanges the column on the screen it's in
+                    tabsetPanel(
+                      
+                      # Here, each tabPanel switches what you see in this column when you press the corresponding tab
+                      tabPanel("Launch Chart",
+                               
+                           column(2,
+                                  
+                                  # Probably a better way to get this image lower, but this works for now
+                                  br(), br(), br(), br(), br(), br(), br(), br(), br(), 
+                                  
+                                  # An image of a batter swinging, sneaky very important for the app
+                                  img(src="swing.png", height = "80px", width = "80px")),
+                           
+                           column(10,
+                                  plotOutput("launchPlot", height = "350px")     
+                           ),
+                           
+                           # Since the columns above filled up the column they're encompassed in, this goes underneath
+                           tableOutput("bbLaunchTable")
+                      ),
+                      
+                      # When the tab 'Tables' is pressed, the screen defined below appears
+                      tabPanel("Tables",
+                               
+                           column(5,
+                                  br(),
+                                  tableOutput("bbZoneTable")
+                           ),
+                           
+                           column(7,
+                                  br(),
+                                  tableOutput("bbPitchTable"),
+                                  tableOutput("bbFlightTable"),
+                                  tableOutput("bbEventTable")
+                           )
+                      )
                   )
-            )
+              )
       ),           
-     # Everything within this tabPanel function is shown when the "All Pitches" tab is clicked
+     
+     # New tabPanel results in an entirely new screen when "All Pitches" is clicked
      tabPanel("All Pitches",
-          # Every column() function creates a column on the screen, and the number associated column(3) is its width
+          
           column(3, 
              style = "background-color:#D3D3D3;",
              selectInput("geom",
@@ -138,24 +185,25 @@ ui <- fluidPage(
                            "Point: Color = Pitch Result" = "Ppr",
                            "Bin: Color = Pitch Count" = "Bpc"),
                          selected = "Bpc"),
-             # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
-             selectInput("pitches",              # The first argument is a label that can be referenced in the server
-                         "Pitches to include:",  # The second argument is the label that will be shown in the App
-                         c("2-Seam Fastball",    # These are all the possible options for the user to pick from
+             
+             selectInput("pitches",              
+                         "Pitches to include:",  
+                         c("2-Seam Fastball",    
                            "4-Seam Fastball",
                            "Changeup",
                            "Curveball",
                            "Cutter",
                            "Sinker",
                            "Slider"),
-                         selected = c("2-Seam Fastball", # These are the options that are selected when you open the app
+                         selected = c("2-Seam Fastball", 
                                       "4-Seam Fastball",
                                       "Changeup",
                                       "Curveball",
                                       "Cutter",
                                       "Sinker",
                                       "Slider"),
-                         multiple = TRUE),               # Allows you to pick multiple options
+                         multiple = TRUE),
+            
              selectInput("results",
                          "Pitch Results to include:",
                          c("Ball" = "ball",
@@ -171,59 +219,67 @@ ui <- fluidPage(
                                       "hit",
                                       "swinging_strike"),
                          multiple = TRUE),
+             
              sliderInput("balls",
                          "Balls in the Count",
                          min = 0,
                          max = 3,
                          value = c(0, 3)),
+             
              sliderInput("strikes",
                          "Strikes in the Count",
                          min = 0,
                          max = 2,
                          value = c(0, 2)
                          ),
-             # br() creates space between widgets
+             
              br(),
+             
              checkboxInput("nums",
                            "Show Zone Numbers:",
                            value = TRUE)
           ),
-          # New column every time this function is called
+          
+          
           column(4,
-             # "allPlot" is defined in the server, and then is called here in the UI to be shown on screen
-             # The same goes for any function that ends in 'Output' (plotOutput, tableOutput...)
              plotOutput("allPlot", height = "530px"),
              img(src="plate.png", width = "70%", height = "50px")
           ),
         
           column(5,
+                 
                  tabsetPanel(
+                   
                    tabPanel("Pie Charts",
-                            column(6,
-                                   br(), br(), br(), br(),
-                                   plotOutput("Pie1", height = "280px")
-                            ),
-                            column(6,
-                                   plotOutput("Pie2", height = "240px"),
-                                   plotOutput("Pie3", height = "240px")
-                            )
-                   ),
-                   tabPanel("Tables",
-                            column(5,
-                                   br(),
-                                   tableOutput("zoneTable")
-                            ),
                             
-                            column(7,
-                                   br(),
-                                   tableOutput("typeTable"),
-                                   br(),
-                                   tableOutput("resultTable")
-                            )
-                         )
+                        column(6,
+                               br(), br(), br(), br(),
+                               plotOutput("Pie1", height = "280px")
+                        ),
+                        
+                        column(6,
+                               plotOutput("Pie2", height = "240px"),
+                               plotOutput("Pie3", height = "240px")
+                        )
+                   ),
+                   
+                   tabPanel("Tables",
+                            
+                        column(5,
+                               br(),
+                               tableOutput("zoneTable")
+                        ),
+                        
+                        column(7,
+                               br(),
+                               tableOutput("typeTable"),
+                               br(),
+                               tableOutput("resultTable")
+                        )
+                    )
                  )
-              )
-        )
+            )
+      )
    )
 )
 
@@ -247,23 +303,28 @@ server <- function(input, output) {
      
      # Using the data that I downloaded from Statcast using the baseballr package
      trout_data %>%
+       
        # Renaming some descriptions so they aren't as big on screen (Long names in the key squish the strikezone)
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
+       
        # All of this filtering means that only the data chosen from the widgets gets displayed on screen
        filter(pitch_name %in% input$pitches,
               description %in% input$results,
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2])) %>%
+       
        # Now the plot can be defined
        # The x and y arguments within ggplot define the location of all the points that will be plotted
        ggplot(aes(x = plate_x, y = plate_z)) +
+       
        # Each if statement in this renderPlot defines how the plot should react if certain inputs are altered
        # This one says that the heat map bins should be shown on screen if that selection is made
        {
          if(input$geom == "Bpc"){
          geom_bin2d(binwidth = c(0.33, 0.2323))} # These numbers make the bins fit nicely in the strikezone
        } +
+       
        # Each of these geom_segments define the strike zone outline that is shown on screen
        geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
        geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
@@ -275,6 +336,7 @@ server <- function(input, output) {
        geom_segment(aes(x = -1, y = mean(sz_bot), xend = 1, yend = mean(sz_bot)), size = 1.5) +
        geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot)), size = 1.5) +
        geom_segment(aes(x = 1, y = mean(sz_top), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       
        # These ifs are used to switch between the color of the points shown on screen (Could be simpler, should fix)
        {
          if(input$geom == "Ppt"){
@@ -283,15 +345,18 @@ server <- function(input, output) {
            geom_point(aes(fill = description), shape = 21, size = 3, color = "black", stroke = 0.5)
          }
        } +
+       
        # If the checkbox for showing numbers is pressed, this geom_text creates thos numbers
        {
          if(input$nums){
            geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black")
          }
        } +
+       
        # xlim and ylim define the size of the plot
        ylim(1.03, 4.1) +
        xlim(-1.67, 1.67) +
+       
        # All of these element_blank()'s make the canvas blank, unlike base ggplot which has axis/grid defaults
        theme(axis.ticks = element_blank(),
              axis.text = element_blank(),
@@ -572,7 +637,7 @@ server <- function(input, output) {
    })
    
    #
-   # ONTO NAV_TAB 2 - BATTED BALLS
+   # ONTO NAV_TAB 2 (Now NAV_TAB 1) - BATTED BALLS
    #
    
    # Creates the strike zone plot
