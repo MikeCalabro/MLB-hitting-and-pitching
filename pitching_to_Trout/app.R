@@ -19,266 +19,266 @@ ui <- fluidPage(
       # Everything within this tabPanel function is shown when the "Batted Balls" tab is clicked
       tabPanel("Batted Balls",
                
-               # Every column() function creates a column on the screen, and the number associated column(3,) is its width
-               # An entire screen fits 12 sections worth of column, so this column takes up 3/12 (.25) of the screen
-               column(3, 
-                      
-                      # style.. allows me to set the background color for the column
-                      style = "background-color:#D3D3D3;",
-                      
-                      # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
-                      # The first argument is a label that can be referenced in the server
-                      # The second argument is the label that will be shown in the App
-                      # The third argument is a list of all the possible options for the user to pick from
-                      # selected.. defines what is originaly chosen when the user opens the app
-                      selectInput("bbgeom",
-                                  "Select Geom Display",
-                                  c("Point: Color = Event" = "Pe",
-                                    "Point: Color = Ball Flight" = "Pbf",
-                                    "Point: Color = Pitch Type" = "Ppt",
-                                    "Point: Color = Launch Speed" = "Pls",
-                                    "Point: Color = Launch Angle" = "Pla"
-                                  ),
-                                  selected = "Pbf"),
-                      
-                      # Each Input widget works in similar ways, with slightly different features
-                      # With this select input, for example, I can make multiple selections
-                      selectInput("bbpitches",              
-                                  "Pitches to include:",  
-                                  c("2-Seam Fastball",    
+           # Every column() function creates a column on the screen, and the number associated column(3,) is its width
+           # An entire screen fits 12 sections worth of column, so this column takes up 3/12 (.25) of the screen
+           column(3, 
+                  
+                  # style.. allows me to set the background color for the column
+                  style = "background-color:#D3D3D3;",
+                  
+                  # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
+                  # The first argument is a label that can be referenced in the server
+                  # The second argument is the label that will be shown in the App
+                  # The third argument is a list of all the possible options for the user to pick from
+                  # selected.. defines what is originaly chosen when the user opens the app
+                  selectInput("bbgeom",
+                              "Select Geom Display",
+                              c("Point: Color = Event" = "Pe",
+                                "Point: Color = Ball Flight" = "Pbf",
+                                "Point: Color = Pitch Type" = "Ppt",
+                                "Point: Color = Launch Speed" = "Pls",
+                                "Point: Color = Launch Angle" = "Pla"
+                              ),
+                              selected = "Pbf"),
+                  
+                  # Each Input widget works in similar ways, with slightly different features
+                  # With this select input, for example, I can make multiple selections
+                  selectInput("bbpitches",              
+                              "Pitches to include:",  
+                              c("2-Seam Fastball",    
+                                "4-Seam Fastball",
+                                "Changeup",
+                                "Curveball",
+                                "Cutter",
+                                "Sinker",
+                                "Slider"),
+                              selected = c("2-Seam Fastball", 
+                                           "4-Seam Fastball",
+                                           "Changeup",
+                                           "Curveball",
+                                           "Cutter",
+                                           "Sinker",
+                                           "Slider"),
+                              multiple = TRUE),
+                  
+                  selectInput("bbflights",              
+                              "Ball Flights to include:",  
+                              c("Pop-up" = "popup",    
+                                "Grounder" = "ground_ball",
+                                "Fly Ball" = "fly_ball",
+                                "Line Drive" = "line_drive"),
+                              selected = c("popup",    
+                                           "ground_ball",
+                                           "fly_ball",
+                                           "line_drive"),
+                              multiple = TRUE),
+                  
+                  selectInput("bbevents",              
+                              "Events to include:",  
+                              c("Single" = "single",    
+                                "Double" = "double",
+                                "Triple" = "triple",
+                                "Home Run" = "home_run",
+                                "Field Out" = "field_out"),
+                              selected = c("single",    
+                                           "double",
+                                           "triple",
+                                           "home_run",
+                                           "field_out"),
+                              multiple = TRUE),
+                  
+                  # This column is nested within the column above
+                  # Every nested column takes up x/12 of the space it is nested in
+                  # So this column(6,) takes up 6/12 (.5) of the width of the column it is nested in
+                  column(6,
+                         sliderInput("bbballs",
+                                     "Balls in the Count",
+                                     min = 0,
+                                     max = 3,
+                                     value = c(0, 3)),
+                         
+                         sliderInput("bbstrikes",
+                                     "Strikes in the Count",
+                                     min = 0,
+                                     max = 2,
+                                     value = c(0, 2))
+                  ),
+                  column(6,
+                         sliderInput("bbAngle",
+                                     "Lauch Angle Range",
+                                     min = -40,
+                                     max = 70,
+                                     value = c(-40, 70)),
+                         sliderInput("bbSpeed",
+                                     "Launch Speed Range",
+                                     min = 0,
+                                     max = 120,
+                                     value = c(0, 120),
+                                     step = 0.1)
+                  )
+                  
+           ),
+           
+           # This entirely new column(4,) makes up the middle 4/12 of the screen (essentially the 'middle')
+           column(4,
+                  
+                  # "bbplot" is defined in the server below as output$bbplot
+                  # if it were a table, it would be called using tableOutput
+                  plotOutput("bbPlot", height = "530px"),
+                  
+                  # plate.png is an image i screenshotted on my comp from the internet.. a home plate
+                  img(src="plate.png", width = "68%", height = "50px")
+           ),
+           
+           # This is the final column on my first screen (Takes up the final 5/12 of the screen)
+           column(5,
+                  
+                # tabsetPanel() does the same thing as navbar, except it only cchanges the column on the screen it's in
+                tabsetPanel(
+                  
+                  # Here, each tabPanel switches what you see in this column when you press the corresponding tab
+                  tabPanel("Launch Chart",
+                           
+                       column(2,
+                              
+                              # Probably a better way to get this image lower, but this works for now
+                              br(), br(), br(), br(), br(), br(), br(), br(), br(), 
+                              
+                              # An image of a batter swinging, sneaky very important for the app
+                              img(src="swing.png", height = "80px", width = "80px")),
+                       
+                       column(10,
+                              plotOutput("launchPlot", height = "350px")     
+                       ),
+                       
+                       # Since the columns above filled up the column they're encompassed in, this goes underneath
+                       tableOutput("bbLaunchTable")
+                  ),
+                  
+                  # When the tab 'Tables' is pressed, the screen defined below appears
+                  tabPanel("Tables",
+                           
+                       column(5,
+                              br(),
+                              tableOutput("bbZoneTable")
+                       ),
+                       
+                       column(7,
+                              br(),
+                              tableOutput("bbPitchTable"),
+                              tableOutput("bbFlightTable"),
+                              tableOutput("bbEventTable")
+                       )
+                  )
+              )
+          )
+      ),           
+     
+     # New tabPanel results in an entirely new screen when "All Pitches" is clicked
+     tabPanel("All Pitches",
+          
+        column(3, 
+           style = "background-color:#D3D3D3;",
+           selectInput("geom",
+                       "Select Geom Display",
+                       c("Point: Color = Pitch Type" = "Ppt",
+                         "Point: Color = Pitch Result" = "Ppr",
+                         "Bin: Color = Pitch Count" = "Bpc"),
+                       selected = "Bpc"),
+           
+           selectInput("pitches",              
+                       "Pitches to include:",  
+                       c("2-Seam Fastball",    
+                         "4-Seam Fastball",
+                         "Changeup",
+                         "Curveball",
+                         "Cutter",
+                         "Sinker",
+                         "Slider"),
+                       selected = c("2-Seam Fastball", 
                                     "4-Seam Fastball",
                                     "Changeup",
                                     "Curveball",
                                     "Cutter",
                                     "Sinker",
                                     "Slider"),
-                                  selected = c("2-Seam Fastball", 
-                                               "4-Seam Fastball",
-                                               "Changeup",
-                                               "Curveball",
-                                               "Cutter",
-                                               "Sinker",
-                                               "Slider"),
-                                  multiple = TRUE),
-                      
-                      selectInput("bbflights",              
-                                  "Ball Flights to include:",  
-                                  c("Pop-up" = "popup",    
-                                    "Grounder" = "ground_ball",
-                                    "Fly Ball" = "fly_ball",
-                                    "Line Drive" = "line_drive"),
-                                  selected = c("popup",    
-                                               "ground_ball",
-                                               "fly_ball",
-                                               "line_drive"),
-                                  multiple = TRUE),
-                      
-                      selectInput("bbevents",              
-                                  "Events to include:",  
-                                  c("Single" = "single",    
-                                    "Double" = "double",
-                                    "Triple" = "triple",
-                                    "Home Run" = "home_run",
-                                    "Field Out" = "field_out"),
-                                  selected = c("single",    
-                                               "double",
-                                               "triple",
-                                               "home_run",
-                                               "field_out"),
-                                  multiple = TRUE),
-                      
-                      # This column is nested within the column above
-                      # Every nested column takes up x/12 of the space it is nested in
-                      # So this column(6,) takes up 6/12 (.5) of the width of the column it is nested in
-                      column(6,
-                             sliderInput("bbballs",
-                                         "Balls in the Count",
-                                         min = 0,
-                                         max = 3,
-                                         value = c(0, 3)),
-                             
-                             sliderInput("bbstrikes",
-                                         "Strikes in the Count",
-                                         min = 0,
-                                         max = 2,
-                                         value = c(0, 2))
-                      ),
-                      column(6,
-                             sliderInput("bbAngle",
-                                         "Lauch Angle Range",
-                                         min = -40,
-                                         max = 70,
-                                         value = c(-40, 70)),
-                             sliderInput("bbSpeed",
-                                         "Launch Speed Range",
-                                         min = 0,
-                                         max = 120,
-                                         value = c(0, 120),
-                                         step = 0.1)
-                      )
-                      
-               ),
-               
-               # This new column makes up the middle 4/12 of the screen (essentially the 'middle')
-               column(4,
-                      
-                      # "bbplot" is defined in the server below as output$bbplot
-                      # if it were a table, it would be called using tableOutput
-                      plotOutput("bbPlot", height = "530px"),
-                      
-                      # plate.png is an image i screenshotted on my comp from the internet.. a home plate
-                      img(src="plate.png", width = "68%", height = "50px")
-               ),
-               
-               # This is the final column on my first screen
-               column(5,
-                      
-                    # tabsetPanel() does the same thing as navbar, except it only cchanges the column on the screen it's in
-                    tabsetPanel(
-                      
-                      # Here, each tabPanel switches what you see in this column when you press the corresponding tab
-                      tabPanel("Launch Chart",
-                               
-                           column(2,
-                                  
-                                  # Probably a better way to get this image lower, but this works for now
-                                  br(), br(), br(), br(), br(), br(), br(), br(), br(), 
-                                  
-                                  # An image of a batter swinging, sneaky very important for the app
-                                  img(src="swing.png", height = "80px", width = "80px")),
-                           
-                           column(10,
-                                  plotOutput("launchPlot", height = "350px")     
-                           ),
-                           
-                           # Since the columns above filled up the column they're encompassed in, this goes underneath
-                           tableOutput("bbLaunchTable")
-                      ),
-                      
-                      # When the tab 'Tables' is pressed, the screen defined below appears
-                      tabPanel("Tables",
-                               
-                           column(5,
-                                  br(),
-                                  tableOutput("bbZoneTable")
-                           ),
-                           
-                           column(7,
-                                  br(),
-                                  tableOutput("bbPitchTable"),
-                                  tableOutput("bbFlightTable"),
-                                  tableOutput("bbEventTable")
-                           )
-                      )
-                  )
-              )
-      ),           
-     
-     # New tabPanel results in an entirely new screen when "All Pitches" is clicked
-     tabPanel("All Pitches",
+                       multiple = TRUE),
           
-          column(3, 
-             style = "background-color:#D3D3D3;",
-             selectInput("geom",
-                         "Select Geom Display",
-                         c("Point: Color = Pitch Type" = "Ppt",
-                           "Point: Color = Pitch Result" = "Ppr",
-                           "Bin: Color = Pitch Count" = "Bpc"),
-                         selected = "Bpc"),
-             
-             selectInput("pitches",              
-                         "Pitches to include:",  
-                         c("2-Seam Fastball",    
-                           "4-Seam Fastball",
-                           "Changeup",
-                           "Curveball",
-                           "Cutter",
-                           "Sinker",
-                           "Slider"),
-                         selected = c("2-Seam Fastball", 
-                                      "4-Seam Fastball",
-                                      "Changeup",
-                                      "Curveball",
-                                      "Cutter",
-                                      "Sinker",
-                                      "Slider"),
-                         multiple = TRUE),
-            
-             selectInput("results",
-                         "Pitch Results to include:",
-                         c("Ball" = "ball",
-                          "Called Strike"  = "called_strike",
-                          "Foul"  = "foul",
-                          "Hit In Play, Out"  = "in_play_out",
-                          "Hit"  = "hit",
-                          "Swinging Strike"  = "swinging_strike"),
-                         selected = c("ball",
-                                      "called_strike",
-                                      "foul",
-                                      "in_play_out",
-                                      "hit",
-                                      "swinging_strike"),
-                         multiple = TRUE),
-             
-             sliderInput("balls",
-                         "Balls in the Count",
-                         min = 0,
-                         max = 3,
-                         value = c(0, 3)),
-             
-             sliderInput("strikes",
-                         "Strikes in the Count",
-                         min = 0,
-                         max = 2,
-                         value = c(0, 2)
-                         ),
-             
-             br(),
-             
-             checkboxInput("nums",
-                           "Show Zone Numbers:",
-                           value = TRUE)
-          ),
-          
-          
-          column(4,
-             plotOutput("allPlot", height = "530px"),
-             img(src="plate.png", width = "70%", height = "50px")
-          ),
+           selectInput("results",
+                       "Pitch Results to include:",
+                       c("Ball" = "ball",
+                        "Called Strike"  = "called_strike",
+                        "Foul"  = "foul",
+                        "Hit In Play, Out"  = "in_play_out",
+                        "Hit"  = "hit",
+                        "Swinging Strike"  = "swinging_strike"),
+                       selected = c("ball",
+                                    "called_strike",
+                                    "foul",
+                                    "in_play_out",
+                                    "hit",
+                                    "swinging_strike"),
+                       multiple = TRUE),
+           
+           sliderInput("balls",
+                       "Balls in the Count",
+                       min = 0,
+                       max = 3,
+                       value = c(0, 3)),
+           
+           sliderInput("strikes",
+                       "Strikes in the Count",
+                       min = 0,
+                       max = 2,
+                       value = c(0, 2)
+                       ),
+           
+           br(),
+           
+           checkboxInput("nums",
+                         "Show Zone Numbers:",
+                         value = TRUE)
+        ),
         
-          column(5,
-                 
-                 tabsetPanel(
-                   
-                   tabPanel("Pie Charts",
-                            
-                        column(6,
-                               br(), br(), br(), br(),
-                               plotOutput("Pie1", height = "280px")
-                        ),
+        
+        column(4,
+           plotOutput("allPlot", height = "530px"),
+           img(src="plate.png", width = "70%", height = "50px")
+        ),
+      
+        column(5,
+               
+             tabsetPanel(
+               
+               tabPanel("Pie Charts",
                         
-                        column(6,
-                               plotOutput("Pie2", height = "240px"),
-                               plotOutput("Pie3", height = "240px")
-                        )
-                   ),
-                   
-                   tabPanel("Tables",
-                            
-                        column(5,
-                               br(),
-                               tableOutput("zoneTable")
-                        ),
-                        
-                        column(7,
-                               br(),
-                               tableOutput("typeTable"),
-                               br(),
-                               tableOutput("resultTable")
-                        )
+                    column(6,
+                           br(), br(), br(), br(),
+                           plotOutput("Pie1", height = "280px")
+                    ),
+                    
+                    column(6,
+                           plotOutput("Pie2", height = "240px"),
+                           plotOutput("Pie3", height = "240px")
                     )
-                 )
-            )
+               ),
+               
+               tabPanel("Tables",
+                        
+                    column(5,
+                           br(),
+                           tableOutput("zoneTable")
+                    ),
+                    
+                    column(7,
+                           br(),
+                           tableOutput("typeTable"),
+                           br(),
+                           tableOutput("resultTable")
+                    )
+                )
+             )
+          )
       )
    )
 )
