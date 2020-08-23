@@ -12,219 +12,218 @@ ui <- fluidPage(
    titlePanel("Pitching To Mike Trout 2017-2020: A Shiny App by Michael Calabro"),
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
-   # Everything within this tabPanel function is shown when the "All Pitches" tab is clicked
-   tabPanel("All Pitches",
-        # Every column() function creates a column on the screen, and the number associated column(3) is its width
-        column(3, 
-           style = "background-color:#D3D3D3;",
-           selectInput("geom",
-                       "Select Geom Display",
-                       c("Point: Color = Pitch Type" = "Ppt",
-                         "Point: Color = Pitch Result" = "Ppr",
-                         "Bin: Color = Pitch Count" = "Bpc"),
-                       selected = "Bpc"),
-           # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
-           selectInput("pitches",              # The first argument is a label that can be referenced in the server
-                       "Pitches to include:",  # The second argument is the label that will be shown in the App
-                       c("2-Seam Fastball",    # These are all the possible options for the user to pick from
-                         "4-Seam Fastball",
-                         "Changeup",
-                         "Curveball",
-                         "Cutter",
-                         "Sinker",
-                         "Slider"),
-                       selected = c("2-Seam Fastball", # These are the options that are selected when you open the app
+              
+      # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
+      tabPanel("Batted Balls",
+               column(3, 
+                      style = "background-color:#D3D3D3;",
+                      selectInput("bbgeom",
+                                  "Select Geom Display",
+                                  c("Point: Color = Event" = "Pe",
+                                    "Point: Color = Ball Flight" = "Pbf",
+                                    "Point: Color = Pitch Type" = "Ppt",
+                                    "Point: Color = Launch Speed" = "Pls",
+                                    "Point: Color = Launch Angle" = "Pla"
+                                  ),
+                                  selected = "Pbf"),
+                      selectInput("bbpitches",              
+                                  "Pitches to include:",  
+                                  c("2-Seam Fastball",    
                                     "4-Seam Fastball",
                                     "Changeup",
                                     "Curveball",
                                     "Cutter",
                                     "Sinker",
                                     "Slider"),
-                       multiple = TRUE),               # Allows you to pick multiple options
-           selectInput("results",
-                       "Pitch Results to include:",
-                       c("Ball" = "ball",
-                        "Called Strike"  = "called_strike",
-                        "Foul"  = "foul",
-                        "Hit In Play, Out"  = "in_play_out",
-                        "Hit"  = "hit",
-                        "Swinging Strike"  = "swinging_strike"),
-                       selected = c("ball",
-                                    "called_strike",
-                                    "foul",
-                                    "in_play_out",
-                                    "hit",
-                                    "swinging_strike"),
-                       multiple = TRUE),
-           sliderInput("balls",
-                       "Balls in the Count",
-                       min = 0,
-                       max = 3,
-                       value = c(0, 3)),
-           sliderInput("strikes",
-                       "Strikes in the Count",
-                       min = 0,
-                       max = 2,
-                       value = c(0, 2)
-                       ),
-           # br() creates space between widgets
-           br(),
-           checkboxInput("nums",
-                         "Show Zone Numbers:",
-                         value = TRUE)
-        ),
-        # New column every time this function is called
-        column(4,
-           # "allPlot" is defined in the server, and then is called here in the UI to be shown on screen
-           # The same goes for any function that ends in 'Output' (plotOutput, tableOutput...)
-           plotOutput("allPlot", height = "530px"),
-           img(src="plate.png", width = "70%", height = "50px")
-        ),
-      
-        column(5,
-               tabsetPanel(
-                 tabPanel("Pie Charts",
-                          column(6,
-                                 br(), br(), br(), br(),
-                                 plotOutput("Pie1", height = "280px")
-                          ),
-                          column(6,
-                                 plotOutput("Pie2", height = "240px"),
-                                 plotOutput("Pie3", height = "240px")
-                          )
-                 ),
-                 tabPanel("Tables",
-                          column(5,
-                                 br(),
-                                 tableOutput("zoneTable")
-                          ),
-                          
-                          column(7,
-                                 br(),
-                                 tableOutput("typeTable"),
-                                 br(),
-                                 tableOutput("resultTable")
-                          )
-                       )
-                 
-               )
-            )
-
-   ),
-   # New tabPanel results in an entirely new screen when "Batted Balls" is clicked
-   tabPanel("Batted Balls",
-            column(3, 
-                   style = "background-color:#D3D3D3;",
-                   selectInput("bbgeom",
-                               "Select Geom Display",
-                               c("Point: Color = Event" = "Pe",
-                                 "Point: Color = Ball Flight" = "Pbf",
-                                 "Point: Color = Pitch Type" = "Ppt",
-                                 "Point: Color = Launch Speed" = "Pls",
-                                 "Point: Color = Launch Angle" = "Pla"
-                               ),
-                               selected = "Pe"),
-                   selectInput("bbpitches",              
-                               "Pitches to include:",  
-                               c("2-Seam Fastball",    
-                                 "4-Seam Fastball",
-                                 "Changeup",
-                                 "Curveball",
-                                 "Cutter",
-                                 "Sinker",
-                                 "Slider"),
-                               selected = c("2-Seam Fastball", 
-                                            "4-Seam Fastball",
-                                            "Changeup",
-                                            "Curveball",
-                                            "Cutter",
-                                            "Sinker",
-                                            "Slider"),
-                               multiple = TRUE),
-                   selectInput("bbflights",              
-                               "Ball Flights to include:",  
-                               c("Pop-up" = "popup",    
-                                 "Grounder" = "ground_ball",
-                                 "Fly Ball" = "fly_ball",
-                                 "Line Drive" = "line_drive"),
-                               selected = c("popup",    
-                                            "ground_ball",
-                                            "fly_ball",
-                                            "line_drive"),
-                               multiple = TRUE),
-                   selectInput("bbevents",              
-                               "Events to include:",  
-                               c("Single" = "single",    
-                                 "Double" = "double",
-                                 "Triple" = "triple",
-                                 "Home Run" = "home_run",
-                                 "Field Out" = "field_out"),
-                               selected = c("single",    
-                                            "double",
-                                            "triple",
-                                            "home_run",
-                                            "field_out"),
-                               multiple = TRUE),
-                   column(6,
-                   sliderInput("bbballs",
-                               "Balls in the Count",
-                               min = 0,
-                               max = 3,
-                               value = c(0, 3)),
-                   sliderInput("bbstrikes",
-                               "Strikes in the Count",
-                               min = 0,
-                               max = 2,
-                               value = c(0, 2)
+                                  selected = c("2-Seam Fastball", 
+                                               "4-Seam Fastball",
+                                               "Changeup",
+                                               "Curveball",
+                                               "Cutter",
+                                               "Sinker",
+                                               "Slider"),
+                                  multiple = TRUE),
+                      selectInput("bbflights",              
+                                  "Ball Flights to include:",  
+                                  c("Pop-up" = "popup",    
+                                    "Grounder" = "ground_ball",
+                                    "Fly Ball" = "fly_ball",
+                                    "Line Drive" = "line_drive"),
+                                  selected = c("popup",    
+                                               "ground_ball",
+                                               "fly_ball",
+                                               "line_drive"),
+                                  multiple = TRUE),
+                      selectInput("bbevents",              
+                                  "Events to include:",  
+                                  c("Single" = "single",    
+                                    "Double" = "double",
+                                    "Triple" = "triple",
+                                    "Home Run" = "home_run",
+                                    "Field Out" = "field_out"),
+                                  selected = c("single",    
+                                               "double",
+                                               "triple",
+                                               "home_run",
+                                               "field_out"),
+                                  multiple = TRUE),
+                      column(6,
+                             sliderInput("bbballs",
+                                         "Balls in the Count",
+                                         min = 0,
+                                         max = 3,
+                                         value = c(0, 3)),
+                             sliderInput("bbstrikes",
+                                         "Strikes in the Count",
+                                         min = 0,
+                                         max = 2,
+                                         value = c(0, 2)
+                             )
+                      ),
+                      column(6,
+                             sliderInput("bbAngle",
+                                         "Lauch Angle Range",
+                                         min = -40,
+                                         max = 70,
+                                         value = c(-40, 70)),
+                             sliderInput("bbSpeed",
+                                         "Launch Speed Range",
+                                         min = 0,
+                                         max = 120,
+                                         value = c(0, 120),
+                                         step = 0.1
+                             )
                       )
-                   ),
-                   column(6,
-                          sliderInput("bbAngle",
-                                      "Lauch Angle Range",
-                                      min = -40,
-                                      max = 70,
-                                      value = c(-40, 70)),
-                          sliderInput("bbSpeed",
-                                      "Launch Speed Range",
-                                      min = 0,
-                                      max = 120,
-                                      value = c(0, 120),
-                                      step = 0.1
-                          )
-                   )
-                   
-            ),
-            column(4,
-                   plotOutput("bbPlot", height = "530px"),
-                   img(src="plate.png", width = "68%", height = "50px")
-            ),
-            column(5,
-            tabsetPanel(
-              tabPanel("Launch Chart",
-                       column(2,
-                              br(), br(), br(), br(), br(), br(), br(), br(), br(),  # Probably a better way to do this
-                              img(src="swing.png", height = "80px", width = "80px")),
-                       column(10,
-                              plotOutput("launchPlot", height = "350px")     
-                              ),
-                       tableOutput("bbLaunchTable")
-              ),
-              tabPanel("Tables",
-                       
-                              column(5,
-                                     br(),
-                                     tableOutput("bbZoneTable")
-                              ),
-                              column(7,
-                                     br(),
-                                     tableOutput("bbPitchTable"),
-                                     tableOutput("bbFlightTable"),
-                                     tableOutput("bbEventTable")
-                              )
-               )
+                      
+               ),
+               column(4,
+                      plotOutput("bbPlot", height = "530px"),
+                      img(src="plate.png", width = "68%", height = "50px")
+               ),
+               column(5,
+                      tabsetPanel(
+                        tabPanel("Launch Chart",
+                                 column(2,
+                                        br(), br(), br(), br(), br(), br(), br(), br(), br(),  # Probably a better way to do this
+                                        img(src="swing.png", height = "80px", width = "80px")),
+                                 column(10,
+                                        plotOutput("launchPlot", height = "350px")     
+                                 ),
+                                 tableOutput("bbLaunchTable")
+                        ),
+                        tabPanel("Tables",
+                                 
+                                 column(5,
+                                        br(),
+                                        tableOutput("bbZoneTable")
+                                 ),
+                                 column(7,
+                                        br(),
+                                        tableOutput("bbPitchTable"),
+                                        tableOutput("bbFlightTable"),
+                                        tableOutput("bbEventTable")
+                                 )
+                        )
+                  )
             )
-         )
-      )
+      ),           
+     # Everything within this tabPanel function is shown when the "All Pitches" tab is clicked
+     tabPanel("All Pitches",
+          # Every column() function creates a column on the screen, and the number associated column(3) is its width
+          column(3, 
+             style = "background-color:#D3D3D3;",
+             selectInput("geom",
+                         "Select Geom Display",
+                         c("Point: Color = Pitch Type" = "Ppt",
+                           "Point: Color = Pitch Result" = "Ppr",
+                           "Bin: Color = Pitch Count" = "Bpc"),
+                         selected = "Bpc"),
+             # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
+             selectInput("pitches",              # The first argument is a label that can be referenced in the server
+                         "Pitches to include:",  # The second argument is the label that will be shown in the App
+                         c("2-Seam Fastball",    # These are all the possible options for the user to pick from
+                           "4-Seam Fastball",
+                           "Changeup",
+                           "Curveball",
+                           "Cutter",
+                           "Sinker",
+                           "Slider"),
+                         selected = c("2-Seam Fastball", # These are the options that are selected when you open the app
+                                      "4-Seam Fastball",
+                                      "Changeup",
+                                      "Curveball",
+                                      "Cutter",
+                                      "Sinker",
+                                      "Slider"),
+                         multiple = TRUE),               # Allows you to pick multiple options
+             selectInput("results",
+                         "Pitch Results to include:",
+                         c("Ball" = "ball",
+                          "Called Strike"  = "called_strike",
+                          "Foul"  = "foul",
+                          "Hit In Play, Out"  = "in_play_out",
+                          "Hit"  = "hit",
+                          "Swinging Strike"  = "swinging_strike"),
+                         selected = c("ball",
+                                      "called_strike",
+                                      "foul",
+                                      "in_play_out",
+                                      "hit",
+                                      "swinging_strike"),
+                         multiple = TRUE),
+             sliderInput("balls",
+                         "Balls in the Count",
+                         min = 0,
+                         max = 3,
+                         value = c(0, 3)),
+             sliderInput("strikes",
+                         "Strikes in the Count",
+                         min = 0,
+                         max = 2,
+                         value = c(0, 2)
+                         ),
+             # br() creates space between widgets
+             br(),
+             checkboxInput("nums",
+                           "Show Zone Numbers:",
+                           value = TRUE)
+          ),
+          # New column every time this function is called
+          column(4,
+             # "allPlot" is defined in the server, and then is called here in the UI to be shown on screen
+             # The same goes for any function that ends in 'Output' (plotOutput, tableOutput...)
+             plotOutput("allPlot", height = "530px"),
+             img(src="plate.png", width = "70%", height = "50px")
+          ),
+        
+          column(5,
+                 tabsetPanel(
+                   tabPanel("Pie Charts",
+                            column(6,
+                                   br(), br(), br(), br(),
+                                   plotOutput("Pie1", height = "280px")
+                            ),
+                            column(6,
+                                   plotOutput("Pie2", height = "240px"),
+                                   plotOutput("Pie3", height = "240px")
+                            )
+                   ),
+                   tabPanel("Tables",
+                            column(5,
+                                   br(),
+                                   tableOutput("zoneTable")
+                            ),
+                            
+                            column(7,
+                                   br(),
+                                   tableOutput("typeTable"),
+                                   br(),
+                                   tableOutput("resultTable")
+                            )
+                         )
+                 )
+              )
+        )
    )
 )
 
