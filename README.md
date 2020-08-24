@@ -1,8 +1,8 @@
-# How Should Pitchers Approach A Mike Trout At Bat? 
+# How Should Pitchers Approach Different MLB Batters? 
 
-To see how he well Mike Trout hits certain pitches in certain scenarios:  
+To see how he well any selected MLB batter hits certain pitches in certain scenarios:  
 
-Check out my Shiny App  https://calabs97.shinyapps.io/pitching_to_Trout/  
+Check out my Shiny App  
 
 # Data:
 
@@ -12,6 +12,5 @@ This data was obtained using [BillPetti's baseballr package](https://github.com/
 
 # Important Files In This Repository:  
 
-[app.R](https://github.com/MikeCalabro/pitching-to-Trout/blob/master/pitching_to_Trout/app.R)  -  Within the pitching_to_Trout folder... This is where all the code to my app lives!
+[app.R](https://github.com/MikeCalabro/pitching-to-Trout/blob/master/pitching_to_Trout/app.R)  -  Within the hitting_and_pitching folder... This is where all the code to my app lives!
 
-[data_downloader.R](https://github.com/MikeCalabro/pitching-to-Trout/blob/master/data_downloader.R)  -  Where I downloaded the data and experimented with visualizations to be used in the app
