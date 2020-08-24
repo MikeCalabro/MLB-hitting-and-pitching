@@ -12,6 +12,6 @@ This data was obtained using [BillPetti's baseballr package](https://github.com/
 
 # Important Files In This Repository:  
 
-app.R  -  within the pitching_to_Trout folder... this is where all the code to my app lives!
+app.R  -  Within the pitching_to_Trout folder... This is where all the code to my app lives!
 
 data_downloader.R  -  Where I downloaded the data and experimented with visualizations to be used in the app
