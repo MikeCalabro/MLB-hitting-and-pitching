@@ -1,20 +1,61 @@
 library(shiny)        # Allows for the interactive elements
 library(tidyverse)    # Data manipulation and visualization
+library(baseballr)    # For obtaining the statcast data
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
-
-# Reading in the data prepared in data_downloader
-trout_data <- read_rds("trout_data")
+library(DT)           # For Data Table Coloration - not yet added but will be
 
 # Everything encased in this UI defines the layout of the app
 ui <- fluidPage(
   
    # App theme(color/text scheme) and App Title
    theme = shinytheme("yeti"),
-   titlePanel("Pitching To Mike Trout 2016-2020: A Shiny App by Michael Calabro"),
+   titlePanel("Hitting Frequencies And Pitching Strategies: A Shiny App by Michael Calabro"),
    
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
+      
+      tabPanel("Main",
+               column(3,
+                      
+                      style = "background-color:#E3E3E3;",     
+                      
+                      h3(strong("Player ID Lookup")),    
+                      
+                      textInput("first_name",
+                                "First Name of the Batter you wish to View:",
+                                value = "Mike",
+                                placeholder = "ex. Mike"),
+                      
+                      textInput("last_name",
+                                "Last Name of the Batter you wish to View:",
+                                value = "Trout",
+                                placeholder = "ex. Trout"),
+                      
+                      tableOutput("batterTable"),
+                      
+                      h3(strong("Data Selection")),
+                      
+                      numericInput("mlbamid",
+                                   "Enter the MLBAM ID of the Batter you wish to View:",
+                                   value = 545361),
+                      
+                      numericInput("startYear",
+                                   "Include Data Going Back To:",
+                                   value = 2016,
+                                   min = 2016,
+                                   max = 2019,
+                                   step = 1) ,
+                      
+                      h5("Important Note: Each Tab loads seperately."),
+                      h5("When you change the ID and switch tabs,"),
+                      h5("please wait 10 seconds for the page to update")
+                      
+               ),
+               column(9
+                      
+               )
+      ),
               
       # Everything within this tabPanel function is shown when the "Batted Balls" tab is clicked
       tabPanel("Batted Balls",
@@ -24,7 +65,9 @@ ui <- fluidPage(
            column(3, 
                   
                   # style.. allows me to set the background color for the column
-                  style = "background-color:#D3D3D3;",
+                  style = "background-color:#E3E3E3;",
+                  
+                  textOutput("bbTitle"),
                   
                   # Inputs like selectInput, sliderInput.. create the widgets which affect the plots/tables
                   # The first argument is a label that can be referenced in the server
@@ -121,7 +164,7 @@ ui <- fluidPage(
            
            # This entirely new column(4,) makes up the middle 4/12 of the screen (essentially the 'middle')
            column(4,
-                  
+            
                   # "bbplot" is defined in the server below as output$bbplot
                   # if it were a table, it would be called using tableOutput
                   plotOutput("bbPlot", height = "530px"),
@@ -178,7 +221,10 @@ ui <- fluidPage(
      tabPanel("All Pitches",
           
         column(3, 
-           style = "background-color:#D3D3D3;",
+           style = "background-color:#E3E3E3;",
+           
+           textOutput("apTitle"),
+           
            selectInput("geom",
                        "Select Geom Display",
                        c("Point: Color = Pitch Type" = "Ppt",
@@ -285,7 +331,7 @@ ui <- fluidPage(
         
         column(3,
                
-          style = "background-color:#D3D3D3;",
+          style = "background-color:#E3E3E3;",
           
           numericInput("psSpeed",
                        "What Is Your Max Fastball Speed?",
@@ -363,6 +409,11 @@ ui <- fluidPage(
         column(1),
         
         column(8,
+               column(3),
+               column(6,
+                      textOutput("psTitle")),
+               column(3),
+               br(),
                tableOutput("psTable")
         )
       )
@@ -374,6 +425,21 @@ ui <- fluidPage(
 # The server is where all the data manipulation and plot making takes place
 # In here I create different plots and tables which can react to inputs from the UI's widgets
 server <- function(input, output) {
+  
+   # This is the function where the data for every plot and table is downloaded and lives
+   batter_data <- reactive({
+     
+     seasons <- (input$startYear:2020)
+     
+       data <- purrr::map_df(seasons, function(x){
+         scrape_statcast_savant_batter(start_date = glue::glue("{x}-04-01"),
+                                       end_date = glue::glue("{x}-10-30"),
+                                       batterid = input$mlbamid)
+       })
+       
+     return(data)
+       
+     })
    
    # Each output$... creates an item (plot/table/text) that can be called in the UI
    # When you see plotOutput("allPlot") in the UI, it calls everything encased in this renderPlot() function
@@ -381,14 +447,25 @@ server <- function(input, output) {
    #This particular Plot is the strikezone plot on the "All Pitches" page
    output$allPlot <- renderPlot({
      
+     bot <- deframe(batter_data() %>%
+                      summarise(mean(sz_bot, na.rm = TRUE)))
+     
+     top <- deframe(batter_data() %>%
+                      summarise(mean(sz_top, na.rm = TRUE)))
      # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
-     num_x <- c(-.66, 0, .66, -.66, 0, .66, -.66, 0, .66, -1.3, 1.3, -1.3, 1.3)
-     num_y <- c(1.95, 1.95, 1.95, 2.55, 2.55, 2.55, 3.15, 3.15, 3.15, 3.7, 3.7, 1.4, 1.4)
-     val <- c(7, 8, 9, 4, 5, 6, 1, 2, 3, 11, 12, 13, 14)
+     num_x <- c(-.66, 0, .66,
+                -.66, 0, .66,
+                -.66, 0, .66,
+                -1.3, 1.3, -1.3, 1.3)
+     num_y <- c(top - 0.3, top - 0.3, top - 0.3,
+                top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
+                bot + 0.3, bot + 0.3, bot + 0.3,
+                top + 0.2, top + 0.2, bot - 0.2, bot - 0.2)
+     val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14)
      num_tab <- data.frame(num_x, num_y, val)
      
      # Using the data that I downloaded from Statcast using the baseballr package
-     trout_data %>%
+     batter_data() %>%
        
        # Renaming some descriptions so they aren't as big on screen (Long names in the key squish the strikezone)
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
@@ -440,7 +517,7 @@ server <- function(input, output) {
        } +
        
        # xlim and ylim define the size of the plot
-       ylim(1.03, 4.1) +
+       ylim(bot - 0.6, top + 0.6) +
        xlim(-1.67, 1.67) +
        
        # All of these element_blank()'s make the canvas blank, unlike base ggplot which has axis/grid defaults
@@ -454,7 +531,7 @@ server <- function(input, output) {
    # The only difference between the next three tables is what I 'group by' to create the rows
    output$typeTable <- renderTable({
      # Same mutating and filtering as for the plot
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
        filter(pitch_name %in% input$pitches,
@@ -481,7 +558,7 @@ server <- function(input, output) {
    
    # This tableOutput is the same as typeTable, but is grouped by pitch result (description)
    output$resultTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
        filter(pitch_name %in% input$pitches,
@@ -504,7 +581,7 @@ server <- function(input, output) {
    
    # This tableOutput is the same as resultTable, but is grouped by zone location (description)
    output$zoneTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
        filter(pitch_name %in% input$pitches,
@@ -529,7 +606,7 @@ server <- function(input, output) {
    # Creates the pie chart closest to the strike zone
    # This will always mirror the geom style in the strike zone
    output$Pie1 <- renderPlot({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
        filter(pitch_name %in% input$pitches,
@@ -596,7 +673,7 @@ server <- function(input, output) {
    
    # Creates the top pie chart on the right
    output$Pie2 <- renderPlot({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
        filter(pitch_name %in% input$pitches,
@@ -661,7 +738,7 @@ server <- function(input, output) {
    
    # Creates the bottom pie chart on the right
    output$Pie3 <- renderPlot({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(description = ifelse(description == "hit_into_play_no_out", "hit",
                                    ifelse(description == "hit_into_play", "in_play_out", description))) %>%
        filter(pitch_name %in% input$pitches,
@@ -730,14 +807,26 @@ server <- function(input, output) {
    # Creates the strike zone plot in the batted balls tab - similar to other strike zone
    output$bbPlot <- renderPlot({
      
+     bot <- deframe(batter_data() %>%
+                      summarise(mean(sz_bot, na.rm = TRUE)))
+     
+     top <- deframe(batter_data() %>%
+                      summarise(mean(sz_top, na.rm = TRUE)))
+     
      # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
-     num_x <- c(-.66, 0, .66, -.66, 0, .66, -.66, 0, .66, -1.3, 1.3, -1.3, 1.3)
-     num_y <- c(1.95, 1.95, 1.95, 2.55, 2.55, 2.55, 3.15, 3.15, 3.15, 3.7, 3.7, 1.4, 1.4)
+     num_x <- c(-.66, 0, .66,
+                -.66, 0, .66,
+                -.66, 0, .66,
+                -1.3, 1.3, -1.3, 1.3)
+     num_y <- c(top - 0.3, top - 0.3, top - 0.3,
+                top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
+                bot + 0.3, bot + 0.3, bot + 0.3,
+                top + 0.2, top + 0.2, bot - 0.2, bot - 0.2)
      val <- c(7, 8, 9, 4, 5, 6, 1, 2, 3, 11, 12, 13, 14)
      num_tab <- data.frame(num_x, num_y, val)
      
      # Using the data that I downloaded from Statcast using the baseballr package
-     trout_data %>%
+     batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -783,7 +872,7 @@ server <- function(input, output) {
        } +
        geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black") +
        # xlim and ylim define the size of the plot
-       ylim(1.03, 4.1) +
+       ylim(bot - 0.6, top + 0.6) +
        xlim(-1.67, 1.67) +
        # All of these element_blank()'s make the canvas blank, unlike base ggplot which has axis/grid defaults
        theme(axis.ticks = element_blank(),
@@ -795,7 +884,7 @@ server <- function(input, output) {
    
    # Creates the zone table under the Tables Tab - similar to tables is "All Pitches" tab
    output$bbZoneTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -829,7 +918,7 @@ server <- function(input, output) {
    
    # Creates the pitch type table under the Tables Tab
    output$bbPitchTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -863,7 +952,7 @@ server <- function(input, output) {
    
    # Creates the ball flight table under the Tables Tab
    output$bbFlightTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -896,7 +985,7 @@ server <- function(input, output) {
    
    # Creates the event table under the Tables Tab
    output$bbEventTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -930,7 +1019,7 @@ server <- function(input, output) {
    
    # Creates the launch angle/speed graphic
    output$launchPlot <- renderPlot({
-     trout_data %>%
+     batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -982,7 +1071,7 @@ server <- function(input, output) {
    
    # Creates the table that is shown under the launch plot
    output$bbLaunchTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        mutate(events = ifelse(events %in% c("double_play",
                                             "field_error",
                                             "fielders_choice",
@@ -1038,7 +1127,7 @@ server <- function(input, output) {
    
    # Creates the Main Pitch Selector Table
    output$psTable <- renderTable({
-     table_data <- trout_data %>%
+     table_data <- batter_data() %>%
        filter(release_speed < input$psSpeed + 1,
               pitch_name %in% input$psPitch,
               balls %in% (input$psBalls[1]:input$psBalls[2]),
@@ -1068,7 +1157,7 @@ server <- function(input, output) {
                  average_launch_speed = mean(launch_speed, na.rm = TRUE))
      
      # For some reason I had to separate this from the creation of final_data above
-     final_data %>%
+     final_table <- final_data %>%
        filter(observations >= input$psObs) %>%
        mutate(swing_p = 1-(no_swing/observations),
               homerun_p = homerun/observations,
@@ -1096,10 +1185,41 @@ server <- function(input, output) {
          "Average Launch Speed" = average_launch_speed
        ) %>%
        head(input$psOptions)
-       
+     
    }, 
    striped = TRUE,
    bordered = TRUE)
+   
+   #
+   # NAV_TAB 4 - BATTER SELECTOR
+   #
+   
+   output$batterTable <- renderTable({
+     playerid_lookup(input$last_name) %>%
+       mutate(MLBAM_ID = as.integer(mlbam_id),
+              First_Season = as.integer(mlb_played_first),
+              First = first_name,
+              Last = last_name) %>%
+       filter(First == input$first_name) %>%
+       filter(!is.na(First_Season)) %>%
+       select(First, Last, MLBAM_ID, First_Season) %>%
+       head(10)
+   }, 
+   hover = TRUE,
+   bordered = TRUE,
+   striped = TRUE)
+   
+   output$apTitle <- renderText({
+     sprintf("%s %s All Pitches %i-2020", input$first_name, input$last_name, input$startYear)
+   })
+   
+   output$bbTitle <- renderText({
+     sprintf("%s %s Batted Balls %i-2020", input$first_name, input$last_name, input$startYear)
+   })
+   
+   output$psTitle <- renderText({
+     sprintf("What Pitch Should You Throw To %s %s?", input$first_name, input$last_name)
+   })
      
 }
 

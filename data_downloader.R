@@ -32,6 +32,8 @@ write_rds(trout_data, path = "pitching_to_Trout/trout_data")
 # the height of the "strike zone" can vary pitch to pitch, but the width cannot
 # Okay, let's do this
 
+deframe(trout_data %>%
+  summarise(mean(sz_bot, na.rm = TRUE)))
 
 
 trout_data %>%
