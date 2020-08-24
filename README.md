@@ -12,5 +12,5 @@ This data was obtained using [BillPetti's baseballr package](https://github.com/
 
 # Important Files In This Repository:  
 
-[app.R](https://github.com/MikeCalabro/pitching-to-Trout/blob/master/pitching_to_Trout/app.R)  -  Within the hitting_and_pitching folder... This is where all the code to my app lives!
+[app.R](https://github.com/MikeCalabro/pitching-to-Trout/blob/master/pitching_to_Trout/app.R)  -  Within the hitting_and_pitching_app folder... This is where all the code to my app lives!
 
