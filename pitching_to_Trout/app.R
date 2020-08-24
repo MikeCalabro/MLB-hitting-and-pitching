@@ -3,7 +3,7 @@ library(tidyverse)    # Data manipulation and visualization
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
 
-trout_data <- read_rds("trout_data.rds")
+trout_data <- read_rds("trout_data")
 
 # Everything encased in this UI defines the layout of the app
 ui <- fluidPage(
