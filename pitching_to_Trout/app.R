@@ -3,6 +3,7 @@ library(tidyverse)    # Data manipulation and visualization
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
 
+# Reading in the data prepared in data_downloader
 trout_data <- read_rds("trout_data")
 
 # Everything encased in this UI defines the layout of the app
@@ -10,7 +11,7 @@ ui <- fluidPage(
   
    # App theme(color/text scheme) and App Title
    theme = shinytheme("yeti"),
-   titlePanel("Pitching To Mike Trout 2017-2020: A Shiny App by Michael Calabro"),
+   titlePanel("Pitching To Mike Trout 2016-2020: A Shiny App by Michael Calabro"),
    
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
@@ -536,6 +537,7 @@ server <- function(input, output) {
               balls %in% (input$balls[1]:input$balls[2]),
               strikes %in% (input$strikes[1]:input$strikes[2]))
      
+    # Each if makes it so that the pie chart closes to the strikezone corresponds to the color scheme of the zone
     if(input$geom == "Bpc"){
       pie_data <- table_data %>%
         mutate(total = nrow(table_data)) %>%
@@ -547,8 +549,8 @@ server <- function(input, output) {
       
       pie_data %>%
         ggplot(aes(x="", y=share, fill=zone))+
-        geom_bar(width = 1, stat = "identity") +
-        coord_polar("y", start=0) +
+        geom_bar(width = 1, stat = "identity") + # Creates a bar plot with one bar
+        coord_polar("y", start=0) +              # Puts the bar in polar coordinates to make a pie-chart
         theme(axis.ticks = element_blank(),
               axis.text = element_blank(),
               axis.title = element_blank(),
@@ -725,7 +727,7 @@ server <- function(input, output) {
    # ONTO NAV_TAB 2 (Now NAV_TAB 1) - BATTED BALLS
    #
    
-   # Creates the strike zone plot
+   # Creates the strike zone plot in the batted balls tab - similar to other strike zone
    output$bbPlot <- renderPlot({
      
      # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
@@ -791,7 +793,7 @@ server <- function(input, output) {
              panel.background = element_blank())
    })
    
-   # Creates the zone table under the Tables Tab
+   # Creates the zone table under the Tables Tab - similar to tables is "All Pitches" tab
    output$bbZoneTable <- renderTable({
      table_data <- trout_data %>%
        mutate(events = ifelse(events %in% c("double_play",
@@ -947,6 +949,7 @@ server <- function(input, output) {
               strikes %in% (input$bbstrikes[1]:input$bbstrikes[2])) %>%
        ggplot() +
        {
+         # Using some trigonometry allows me to visualize launch angle and velocity in this plot
          if(input$bbgeom == "Pbf"){
            geom_segment(aes(x = 0, y = 0, xend = launch_speed*cos(launch_angle*pi/180),
                             yend = launch_speed*sin(launch_angle*pi/180), color = bb_type))
@@ -964,8 +967,11 @@ server <- function(input, output) {
                             yend = launch_speed*sin(launch_angle*pi/180), color = launch_angle))
          }
        } +
+       # hline represents the ground
        geom_hline(yintercept = -10) +
        ylim(-35, 80) +
+       
+       # Removes all the background grid lines and gray color and axes
        theme(axis.ticks = element_blank(),
              axis.text = element_blank(),
              axis.title = element_blank(),
@@ -974,7 +980,7 @@ server <- function(input, output) {
              legend.position = "none")
    })
    
-   # Creates the table thats shown under the launch plot
+   # Creates the table that is shown under the launch plot
    output$bbLaunchTable <- renderTable({
      table_data <- trout_data %>%
        mutate(events = ifelse(events %in% c("double_play",
@@ -1047,7 +1053,9 @@ server <- function(input, output) {
      table_data <- table_data %>%
        mutate(total = nrow(table_data)) %>%
        select(pitch_name, zone, total, launch_speed, description, events, bb_type, type)
-       
+    
+     # Turns the selected columns into their own individual dummy variable columns
+     # Makes life easier when adding up certain observations
      table_data <- fastDummies::dummy_cols(table_data, select_columns = c("description", "events", "bb_type", "type"))
      
      final_data <- table_data %>%
@@ -1059,6 +1067,7 @@ server <- function(input, output) {
                  hit_in_play = sum(type_X),
                  average_launch_speed = mean(launch_speed, na.rm = TRUE))
      
+     # For some reason I had to separate this from the creation of final_data above
      final_data %>%
        filter(observations >= input$psObs) %>%
        mutate(swing_p = 1-(no_swing/observations),

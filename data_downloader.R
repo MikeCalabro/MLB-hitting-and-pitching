@@ -5,17 +5,13 @@ library(baseballr)
 # Need to find Mike Trout's MLBAM ID
 playerid_lookup("Trout") %>% filter(first_name == "Mike")  # Player ID is 545361
 
-# Now I can download his pitch-by-pitch data since 2017
-trout_2017 <- scrape_statcast_savant_batter(start_date = "2017-04-01", end_date = "2017-10-30", batterid = 545361)
-trout_2018 <- scrape_statcast_savant_batter(start_date = "2018-04-01", end_date = "2018-10-30", batterid = 545361)
-trout_2019 <- scrape_statcast_savant_batter(start_date = "2019-04-01", end_date = "2019-10-30", batterid = 545361)
-trout_2020 <- scrape_statcast_savant_batter(start_date = "2020-07-01", end_date = "2020-08-19", batterid = 545361)
+# The seasons that I want to observe
+seasons <- (2016:2020)
 
-trout_data <- trout_2017 %>%
-  full_join(trout_2018) %>%
-  full_join(trout_2019) %>%
-  full_join(trout_2020)
-
+# Seperately downloading data for each season and combining into one dataframe
+trout_data <- purrr::map_df(seasons, function(x){
+  scrape_statcast_savant_batter(start_date = glue::glue("{x}-04-01"), end_date = glue::glue("{x}-10-30"), batterid = 545361)
+})
 
 # Peak at data to see the different variables we have to work with
 glimpse(trout_data)
@@ -23,7 +19,7 @@ glimpse(trout_data)
 # RDS to transfer the data to my Shiny app
 write_rds(trout_data, path = "pitching_to_Trout/trout_data")
 
-# WORD
+# THE REST OF THIS FILE IS ME PLAYING WITH THE DATA BEFORE I IMPLEMENT INTO MY APP
 # Now I need to learn how to plot a pitch in a strikezone
 #
 # Important variables:
@@ -108,4 +104,5 @@ trout_data %>%
 # So stupid... I figured it out
 # In my code I use %in% (x:y) and (x:y) makes a list of integers to check
 # Easy fix I hope
+# GOT IT
   
