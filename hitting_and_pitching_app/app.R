@@ -896,7 +896,7 @@ server <- function(input, output) {
                 top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
                 bot + 0.3, bot + 0.3, bot + 0.3,
                 top + 0.2, top + 0.2, bot - 0.2, bot - 0.2)
-     val <- c(7, 8, 9, 4, 5, 6, 1, 2, 3, 11, 12, 13, 14)
+     val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14)
      num_tab <- data.frame(num_x, num_y, val)
      
      # Using the data that I downloaded from Statcast using the baseballr package
