@@ -21,34 +21,38 @@ ui <- fluidPage(
                # Every column() function creates a column on the screen, and the number associated column(3,) is its width
                # An entire screen fits 12 sections worth of column, so this column takes up 3/12 (.25) of the screen
                column(3,
-                      
-                      # style.. allows me to set the background color for the column
-                      style = "background-color:#E3E3E3;",     
-                      
-                      h3(strong("Player ID Lookup")),    
-                      
-                      textInput("first_name",
-                                "First Name of the Batter you wish to View:",
-                                value = "Mike",
-                                placeholder = "ex. Mike"),
-                      
-                      textInput("last_name",
-                                "Last Name of the Batter you wish to View:",
-                                value = "Trout",
-                                placeholder = "ex. Trout"),
-                      
-                      tableOutput("batterTable"),
-                      
-                      h3(strong("Data Selection")),
-                      
-                      numericInput("mlbamid",
-                                   "Enter the MLBAM ID of the Batter you wish to View:",
-                                   value = 545361),
-                      
-                      h5("Important Note: Each Tab loads seperately."),
-                      h5("When you change the ID and switch tabs,"),
-                      h5("please wait 10 seconds for the page to update")
-                      
+                      column(12,
+                             # style.. allows me to set the background color for the column
+                             style = "background-color:#E3E3E3;",
+                             
+                             h3(strong("Data Selection")),
+                             
+                             numericInput("mlbamid",
+                                          "Enter the MLBAM ID of your chosen batter:",
+                                          value = 545361),
+                             
+                             h5("Note: Each Tab loads seperately."),
+                             h5("When you change the ID and switch tabs,"),
+                             h5("wait 10 seconds for the page to update"),
+                             br()
+                             ),
+                      column(12,
+                             h3(strong("Player ID Lookup")),    
+                             
+                             textInput("first_name",
+                                       "First Name of the Batter you wish to View:",
+                                       value = "Mike",
+                                       placeholder = "ex. Mike"),
+                             
+                             textInput("last_name",
+                                       "Last Name of the Batter you wish to View:",
+                                       value = "Trout",
+                                       placeholder = "ex. Trout"),
+                             
+                             tableOutput("batterTable"),
+                             
+                             br()
+                             )
                ),
                column(1),
                column(6,
