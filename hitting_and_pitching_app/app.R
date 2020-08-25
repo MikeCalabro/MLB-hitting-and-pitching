@@ -4,6 +4,9 @@ library(baseballr)    # For obtaining the statcast data
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
 
+# data read in from popular_players rScript
+popular_players <- read_rds("popular")
+
 # Everything encased in this UI defines the layout of the app
 ui <- fluidPage(
   
@@ -23,38 +26,65 @@ ui <- fluidPage(
                       column(12,
                              # style.. allows me to set the background color for the column
                              style = "background-color:#E3E3E3;",
+                             column(12,
+                                    h3(strong("Data Selection"))
+                                    ),
                              
-                             h3(strong("Data Selection")),
                              
-                             numericInput("mlbamid",
-                                          "Enter your batter's MLBAM ID:",
-                                          value = 646240
-                                          ),
-                             
-                             actionButton("go", "Select!"),
-                             
-                             h5("Note: Each Tab loads seperately."),
-                             h5("When you change the ID and switch tabs,"),
-                             h5("wait 10 seconds for the page to update"),
+                             column(6,
+                                    textInput("last",
+                                              "Last Name",
+                                              value = "Devers",
+                                              placeholder = "ex: Devers" )
+                                    ),
+                             column(6,
+                                     numericInput("mlbamid",
+                                                  "MLBAM ID:",
+                                                  value = 646240
+                                                  )
+                             ),
+                             column(12,
+                                    actionButton("go", "Select!"),
+                                    br(),
+                                    h6("Note: The data begins to load when you"),
+                                    h6("navigate out of the main tab."),
+                                    h6("Loading may take up to 10 seconds")
+                                    ),
                              br()
                              ),
                       column(12,
-                             h3(strong("Player ID Lookup")),    
+                             h3(strong("Player ID Lookup")),
                              
-                             textInput("first_name",
-                                       "First Name of the Batter you wish to View:",
-                                       value = "Rafael",
-                                       placeholder = "eample: Rafael"),
-                             
-                             textInput("last_name",
-                                       "Last Name of the Batter you wish to View:",
-                                       value = "Devers",
-                                       placeholder = "example: Devers"),
-                             
-                             tableOutput("batterTable"),
-                             
-                             br()
+                             tabsetPanel(
+                               tabPanel("Popular Players",
+                                        
+                                        br(),
+                                        
+                                        tableOutput("popTab")
+                                        
+                                        ),
+                               tabPanel("Search",
+                                        
+                                        column(6,
+                                               textInput("first_name",
+                                                         "First Name",
+                                                         value = "Rafael",
+                                                         placeholder = "ex: Rafael")     
+                                               ),
+                                        
+                                        column(6, 
+                                               textInput("last_name",
+                                                         "Last Name",
+                                                         value = "Devers",
+                                                         placeholder = "ex: Devers")
+                                               ),
+                                        
+                                        tableOutput("batterTable"),
+                                        
+                                        br()      
+                                )
                              )
+                      )
                ),
                column(1),
                column(6,
@@ -62,27 +92,29 @@ ui <- fluidPage(
                       h4(strong("Welcome to Hitting Stats And Pitching Strats!")),
                       br(),
                       tags$u(h4("What sort of data can I view?")),
-                      br(),
                       h5("Each tab provides a unique visualization of MLB pitch-by-pitch data for a selected batter:"),
                       tags$ul(h5("Batted Balls - displays Strike Zone and Launch Chart data for every ball hit in play")),
                       tags$ul(h5("All Pitches - Displays a Heat Map of which zone pitchers throw to with selected pitches")),
                       tags$ul(h5("Pitch Selector - displays the most effective pitches to throw when facing this batter")),
                       br(),
                       tags$u(h4("How do I select my Batter?")),
-                      br(),
                       h5("To select your batter, first search for a CURRENT PLAYER's name in the sidebar."),
-                      h5("When you find your player of choice, input his MLBAM ID into the 'Data Selection' Input."),
+                      h5("When you find your player, input his Last Name & MLBAM ID into the 'Data Selection' Input."),
                       h5(strong("Press 'Select!' and switch tabs to begin you visualization adventure!")),
                       br(),
                       tags$u(h4("Where is this data from?")),
-                      br(),
-                      h5("All data is downloaded from the MLB's Statcast Search using Bill Petti's baseballr package"),
+                      h5("All data is downloaded from the MLB's Statcast Search using Bill Petti's baseballr package."),
                       a("Check out the Statcast Search Website!", href="https://baseballsavant.mlb.com/statcast_search"),
                       br(),
                       a("Check out the Statcast CSV documentation!", href="https://baseballsavant.mlb.com/csv-docs"),
                       br(),
-                      a("And check out the baseballr GitHub repository!", href="https://github.com/BillPetti/baseballr")
-                      
+                      a("And check out the baseballr GitHub repository!", href="https://github.com/BillPetti/baseballr"),
+                      br(),
+                      br(),
+                      tags$u(h4("Anything Else I Need to Know?")),
+                      h5("This app only works for active players, and is best viewed in full screen on a computer or laptop."),
+                      h5("And that is all! Enjoy the charts, and GO RED SOX!")
+
                )
       ),
               
@@ -451,7 +483,7 @@ server <- function(input, output) {
    # Determines the first year from which my data is collected
    start_year <- reactive({
 
-     year <- deframe(playerid_lookup(input$last_name) %>%
+     year <- deframe(playerid_lookup(input$last) %>%
                        filter(mlbam_id == input$mlbamid) %>%
                        select(mlb_played_first))
      
@@ -472,7 +504,7 @@ server <- function(input, output) {
                                                    end_date = glue::glue("{x}-10-30"),
                                                    batterid = input$mlbamid)
                    }),
-                  message = sprintf('%s %s data is loading', input$first_name, input$last_name),
+                  message = sprintf('Data for %s is loading...', input$last),
                   detail = 'Trust the process... and Go Sox', value = 0.98)
      
        
@@ -480,7 +512,8 @@ server <- function(input, output) {
      })
    
    observeEvent(input$go, {
-     showNotification("Great Choice! When you switch tabs, the data will begin to load!")})
+     showNotification("Great Choice! When you switch tabs, the data will begin to load!")
+     })
    
    # Each output$... creates an item (plot/table/text) that can be called in the UI
    # When you see plotOutput("allPlot") in the UI, it calls everything encased in this renderPlot() function
@@ -1254,16 +1287,23 @@ server <- function(input, output) {
    
    # Text outputs are pretty basic, allow me to use input for a text output
    output$apTitle <- renderText({
-     sprintf("%s %s All Pitches %i-2020", input$first_name, input$last_name, start_year())
+     sprintf("%s All Pitches %i-2020", input$last, start_year())
    })
    
    output$bbTitle <- renderText({
-     sprintf("%s %s Batted Balls %i-2020", input$first_name, input$last_name, start_year())
+     sprintf("%s Batted Balls %i-2020", input$last, start_year())
    })
    
    output$psTitle <- renderText({
-     sprintf("What Pitch Should You Throw To %s %s?", input$first_name, input$last_name)
+     sprintf("What Pitch Should You Throw To %s?", input$last)
    })
+   
+   output$popTab <- renderTable({
+     popular_players
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   hover = TRUE)
      
 }
 
