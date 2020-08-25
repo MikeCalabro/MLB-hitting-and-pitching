@@ -464,10 +464,10 @@ server <- function(input, output) {
    # This is the function where the data for every plot and table is downloaded and lives
    batter_data <- reactive({
       
-     withProgress(message = 'Your new data is loading...',
-                  detail = 'Thank you for your patience', value = 0, {
-                    for (i in 1:50) {
-                      incProgress(1/50)
+     withProgress(message = sprintf('%s %s data is loading', input$first_name, input$last_name),
+                  detail = 'Trust the process... and Go Sox', value = 0, {
+                    for (i in 1:60) {
+                      incProgress(1/60)
                       Sys.sleep(0.25)
                     }
                   })
@@ -1255,6 +1255,7 @@ server <- function(input, output) {
    bordered = TRUE,
    striped = TRUE)
    
+   # Text outputs are pretty basic, allow me to use input for a text output
    output$apTitle <- renderText({
      sprintf("%s %s All Pitches %i-2020", input$first_name, input$last_name, start_year())
    })
