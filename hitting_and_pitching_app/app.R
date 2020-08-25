@@ -396,7 +396,6 @@ ui <- fluidPage(
                              step = 1)
                  ),
           
-          
           selectInput("psBallStrike",
                       "Do You Want To Throw A Strike?",
                       c("Yes",
