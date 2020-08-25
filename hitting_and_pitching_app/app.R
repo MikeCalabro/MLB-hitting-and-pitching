@@ -3,7 +3,6 @@ library(tidyverse)    # Data manipulation and visualization
 library(baseballr)    # For obtaining the statcast data
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
-library(DT)           # For Data Table Coloration - not yet added but will be
 
 # Everything encased in this UI defines the layout of the app
 ui <- fluidPage(
