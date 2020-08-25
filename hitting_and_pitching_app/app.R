@@ -62,7 +62,7 @@ ui <- fluidPage(
                       br(),
                       h5("Each tab provides a unique visualization of MLB pitch-by-pitch data for a selected batter:"),
                       tags$ul(h5("Batted Balls - displays Strike Zone and Launch Chart data for every ball hit in play")),
-                      tags$ul(h5("All Pitches - Displays a heat Map of which zone pitchers throw to with selected pitches")),
+                      tags$ul(h5("All Pitches - Displays a Heat Map of which zone pitchers throw to with selected pitches")),
                       tags$ul(h5("Pitch Selector - displays the most effective pitches to throw when facing this batter")),
                       br(),
                       tags$u(h4("How do I select my Batter?")),
@@ -77,7 +77,7 @@ ui <- fluidPage(
                       br(),
                       a("Check out the Statcast CSV documentation!", href="https://baseballsavant.mlb.com/csv-docs"),
                       br(),
-                      a("And check out the baseballr GitHub documentation!", href="https://github.com/BillPetti/baseballr")
+                      a("And check out the baseballr GitHub repository!", href="https://github.com/BillPetti/baseballr")
                       
                )
       ),
@@ -103,7 +103,7 @@ ui <- fluidPage(
                                 "Point: Color = Launch Speed" = "Pls",
                                 "Point: Color = Launch Angle" = "Pla"
                               ),
-                              selected = "Pbf"),
+                              selected = "Pe"),
                   
                   # Each Input widget works in similar ways, with slightly different features
                   # With this select input, for example, I can make multiple selections
@@ -146,9 +146,7 @@ ui <- fluidPage(
                                 "Field Out" = "field_out"),
                               selected = c("single",    
                                            "double",
-                                           "triple",
-                                           "home_run",
-                                           "field_out"),
+                                           "home_run"),
                               multiple = TRUE),
                   
                   # This column is nested within the column above
