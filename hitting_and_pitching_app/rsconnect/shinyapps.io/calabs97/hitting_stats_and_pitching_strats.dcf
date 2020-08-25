@@ -5,8 +5,8 @@ account: calabs97
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2705441
-bundleId: 3556876
+bundleId: 3556961
 url: https://calabs97.shinyapps.io/hitting_stats_and_pitching_strats/
-when: 1598381516.81105
+when: 1598383367.19185
 asMultiple: FALSE
 asStatic: FALSE
