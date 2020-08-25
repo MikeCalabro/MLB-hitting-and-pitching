@@ -404,7 +404,7 @@ ui <- fluidPage(
                       selected = "Yes"),
           
           selectInput("psGoal",
-                      "Your Goal - Minimize the chance of Mike...",
+                      "Your Goal - Minimize the chance of The Batter...",
                       c("Swinging at the Pitch" = "swing",
                         "Hitting the Ball In Play" = "hit_in_play",
                         "Hitting a Home Run" = "homerun",
