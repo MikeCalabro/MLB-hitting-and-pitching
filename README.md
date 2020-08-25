@@ -2,7 +2,7 @@
 
 To see how he well any selected MLB batter hits certain pitches in certain scenarios:  
 
-Check out my Shiny App https://calabs97.shinyapps.io/pitching_to_Trout/
+Check out my Shiny App https://calabs97.shinyapps.io/hitting_stats_and_pitching_strats/
 
 Note - that app was originally designed to only include Mike Trout data, hence the link name
 
