@@ -446,6 +446,7 @@ ui <- fluidPage(
 # In here I create different plots and tables which can react to inputs from the UI's widgets
 server <- function(input, output) {
   
+   # Determines the first year from which my data is collected
    start_year <- reactive({
      
      year <- deframe(playerid_lookup(input$last_name) %>%
@@ -460,10 +461,16 @@ server <- function(input, output) {
      
    })
   
-  
    # This is the function where the data for every plot and table is downloaded and lives
    batter_data <- reactive({
-     
+      
+     withProgress(message = 'Your new data is loading...',
+                  detail = 'Thank you for your patience', value = 0, {
+                    for (i in 1:40) {
+                      incProgress(1/40)
+                      Sys.sleep(0.25)
+                    }
+                  })
      
        seasons <- (start_year():2020)
      
@@ -1164,6 +1171,7 @@ server <- function(input, output) {
    
    # Creates the Main Pitch Selector Table
    output$psTable <- renderTable({
+     
      table_data <- batter_data() %>%
        filter(release_speed < input$psSpeed + 1,
               pitch_name %in% input$psPitch,
@@ -1232,6 +1240,7 @@ server <- function(input, output) {
    #
    
    output$batterTable <- renderTable({
+     
      playerid_lookup(input$last_name) %>%
        mutate(MLBAM_ID = as.integer(mlbam_id),
               First_Season = as.integer(mlb_played_first),
