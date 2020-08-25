@@ -9,7 +9,7 @@ ui <- fluidPage(
   
    # App theme(color/text scheme) and App Title
    theme = shinytheme("yeti"),
-   titlePanel("Hitting Stats And Pitching Strats: A Shiny App by Michael Calabro"),
+   titlePanel("Hitting Statistics And Pitching Strategies: A Shiny App by Michael Calabro"),
    
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
@@ -27,8 +27,11 @@ ui <- fluidPage(
                              h3(strong("Data Selection")),
                              
                              numericInput("mlbamid",
-                                          "Enter the MLBAM ID of your chosen batter:",
-                                          value = 545361),
+                                          "Enter your batter's MLBAM ID:",
+                                          value = 646240
+                                          ),
+                             
+                             actionButton("go", "Select!"),
                              
                              h5("Note: Each Tab loads seperately."),
                              h5("When you change the ID and switch tabs,"),
@@ -40,13 +43,13 @@ ui <- fluidPage(
                              
                              textInput("first_name",
                                        "First Name of the Batter you wish to View:",
-                                       value = "Mike",
-                                       placeholder = "ex. Mike"),
+                                       value = "Rafael",
+                                       placeholder = "eample: Rafael"),
                              
                              textInput("last_name",
                                        "Last Name of the Batter you wish to View:",
-                                       value = "Trout",
-                                       placeholder = "ex. Trout"),
+                                       value = "Devers",
+                                       placeholder = "example: Devers"),
                              
                              tableOutput("batterTable"),
                              
@@ -67,8 +70,9 @@ ui <- fluidPage(
                       br(),
                       tags$u(h4("How do I select my Batter?")),
                       br(),
-                      h5("To select your batter, first search for the player's name in the sidebar."),
+                      h5("To select your batter, first search for a CURRENT PLAYER's name in the sidebar."),
                       h5("When you find your player of choice, input his MLBAM ID into the 'Data Selection' Input."),
+                      h5(strong("Press 'Select!' and switch tabs to begin you visualization adventure!")),
                       br(),
                       tags$u(h4("Where is this data from?")),
                       br(),
@@ -460,7 +464,7 @@ server <- function(input, output) {
    })
   
    # This is the function where the data for every plot and table is downloaded and lives
-   batter_data <- reactive({
+   batter_data <- eventReactive(input$go, {
      
       withProgress(
                    purrr::map_df((start_year():2020), function(x){
@@ -474,6 +478,9 @@ server <- function(input, output) {
        
 
      })
+   
+   observeEvent(input$go, {
+     showNotification("Great Choice! When you switch tabs, the data will begin to load!")})
    
    # Each output$... creates an item (plot/table/text) that can be called in the UI
    # When you see plotOutput("allPlot") in the UI, it calls everything encased in this renderPlot() function
