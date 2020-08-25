@@ -45,13 +45,6 @@ ui <- fluidPage(
                                    "Enter the MLBAM ID of the Batter you wish to View:",
                                    value = 545361),
                       
-                      numericInput("startYear",
-                                   "Include Data Going Back To:",
-                                   value = 2016,
-                                   min = 2016,
-                                   max = 2019,
-                                   step = 1) ,
-                      
                       h5("Important Note: Each Tab loads seperately."),
                       h5("When you change the ID and switch tabs,"),
                       h5("please wait 10 seconds for the page to update")
@@ -72,7 +65,7 @@ ui <- fluidPage(
                       tags$u(h4("How do I select my Batter?")),
                       br(),
                       h5("To select your batter, first search for the player's name in the sidebar."),
-                      h5("When you find your player of choice, imput his MLBAM ID into the 'Data Selection' Input."),
+                      h5("When you find your player of choice, input his MLBAM ID into the 'Data Selection' Input."),
                       br(),
                       tags$u(h4("Where is this data from?")),
                       br(),
@@ -451,10 +444,27 @@ ui <- fluidPage(
 # In here I create different plots and tables which can react to inputs from the UI's widgets
 server <- function(input, output) {
   
+   start_year <- reactive({
+     
+     year <- deframe(playerid_lookup(input$last_name) %>%
+                       filter(mlbam_id == input$mlbamid) %>%
+                       select(mlb_played_first))
+     
+     if (year < 2015){
+       year <- 2015
+     }
+     
+     return(year)
+     
+   })
+  
+  
    # This is the function where the data for every plot and table is downloaded and lives
    batter_data <- reactive({
      
-     seasons <- (input$startYear:2020)
+     
+       seasons <- (start_year():2020)
+     
      
        data <- purrr::map_df(seasons, function(x){
          scrape_statcast_savant_batter(start_date = glue::glue("{x}-04-01"),
@@ -1235,11 +1245,11 @@ server <- function(input, output) {
    striped = TRUE)
    
    output$apTitle <- renderText({
-     sprintf("%s %s All Pitches %i-2020", input$first_name, input$last_name, input$startYear)
+     sprintf("%s %s All Pitches %i-2020", input$first_name, input$last_name, start_year())
    })
    
    output$bbTitle <- renderText({
-     sprintf("%s %s Batted Balls %i-2020", input$first_name, input$last_name, input$startYear)
+     sprintf("%s %s Batted Balls %i-2020", input$first_name, input$last_name, start_year())
    })
    
    output$psTitle <- renderText({
