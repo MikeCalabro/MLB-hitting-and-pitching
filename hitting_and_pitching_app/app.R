@@ -466,8 +466,8 @@ server <- function(input, output) {
       
      withProgress(message = 'Your new data is loading...',
                   detail = 'Thank you for your patience', value = 0, {
-                    for (i in 1:40) {
-                      incProgress(1/40)
+                    for (i in 1:50) {
+                      incProgress(1/50)
                       Sys.sleep(0.25)
                     }
                   })
