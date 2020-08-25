@@ -15,9 +15,14 @@ ui <- fluidPage(
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
       
+      # Everything within this tabPanel function is shown when the "Batted Balls" tab is clicked
       tabPanel("Main",
+               
+               # Every column() function creates a column on the screen, and the number associated column(3,) is its width
+               # An entire screen fits 12 sections worth of column, so this column takes up 3/12 (.25) of the screen
                column(3,
                       
+                      # style.. allows me to set the background color for the column
                       style = "background-color:#E3E3E3;",     
                       
                       h3(strong("Player ID Lookup")),    
@@ -52,19 +57,39 @@ ui <- fluidPage(
                       h5("please wait 10 seconds for the page to update")
                       
                ),
-               column(9
+               column(1),
+               column(6,
+                  
+                      h4(strong("Welcome to Hitting Frequencies And Pitching Strategies!")),
+                      br(),
+                      tags$u(h4("How do I select my Batter?")),
+                      br(),
+                      h5("To select your batter, first search for the player's name in the sidebar."),
+                      h5("When you find your player of choice, imput his MLBAM ID into the 'Data Selection' Input."),
+                      br(),
+                      tags$u(h4("What sort of data can I view?")),
+                      br(),
+                      h5("Each tab provides a unique visualization of highly customizable MLB pitch-by-pitch data:"),
+                      tags$ul(h5("Batted Balls - displays Strike Zone and Launch Chart data for every ball hit in play")),
+                      tags$ul(h5("All Pitches - Displays a heat Map of which zone pitchers throw to with selected pitches")),
+                      tags$ul(h5("Pitch Selector - displays the most effective pitches to throw when facing this batter")),
+                      br(),
+                      tags$u(h4("Where is this data from?")),
+                      br(),
+                      h5("All data is downloaded from the MLB's Statcast Search using Bill Petti's baseballr package"),
+                      a("Check out the Statcast Search Website!", href="https://baseballsavant.mlb.com/statcast_search"),
+                      br(),
+                      a("Check out the Statcast CSV documentation!", href="https://baseballsavant.mlb.com/csv-docs"),
+                      br(),
+                      a("And check out the baseballr GitHub documentation!", href="https://github.com/BillPetti/baseballr")
                       
                )
       ),
               
-      # Everything within this tabPanel function is shown when the "Batted Balls" tab is clicked
       tabPanel("Batted Balls",
                
-           # Every column() function creates a column on the screen, and the number associated column(3,) is its width
-           # An entire screen fits 12 sections worth of column, so this column takes up 3/12 (.25) of the screen
            column(3, 
                   
-                  # style.. allows me to set the background color for the column
                   style = "background-color:#E3E3E3;",
                   
                   textOutput("bbTitle"),
