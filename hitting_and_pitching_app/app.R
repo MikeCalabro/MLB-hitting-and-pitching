@@ -10,7 +10,7 @@ ui <- fluidPage(
   
    # App theme(color/text scheme) and App Title
    theme = shinytheme("yeti"),
-   titlePanel("Hitting Frequencies And Pitching Strategies: A Shiny App by Michael Calabro"),
+   titlePanel("Hitting Stats And Pitching Strats: A Shiny App by Michael Calabro"),
    
    # navbarPage creates tabs at the top of the app to switch between
    navbarPage("Navbar", 
@@ -60,19 +60,19 @@ ui <- fluidPage(
                column(1),
                column(6,
                   
-                      h4(strong("Welcome to Hitting Frequencies And Pitching Strategies!")),
+                      h4(strong("Welcome to Hitting Stats And Pitching Strats!")),
+                      br(),
+                      tags$u(h4("What sort of data can I view?")),
+                      br(),
+                      h5("Each tab provides a unique visualization of MLB pitch-by-pitch data for a selected batter:"),
+                      tags$ul(h5("Batted Balls - displays Strike Zone and Launch Chart data for every ball hit in play")),
+                      tags$ul(h5("All Pitches - Displays a heat Map of which zone pitchers throw to with selected pitches")),
+                      tags$ul(h5("Pitch Selector - displays the most effective pitches to throw when facing this batter")),
                       br(),
                       tags$u(h4("How do I select my Batter?")),
                       br(),
                       h5("To select your batter, first search for the player's name in the sidebar."),
                       h5("When you find your player of choice, imput his MLBAM ID into the 'Data Selection' Input."),
-                      br(),
-                      tags$u(h4("What sort of data can I view?")),
-                      br(),
-                      h5("Each tab provides a unique visualization of highly customizable MLB pitch-by-pitch data:"),
-                      tags$ul(h5("Batted Balls - displays Strike Zone and Launch Chart data for every ball hit in play")),
-                      tags$ul(h5("All Pitches - Displays a heat Map of which zone pitchers throw to with selected pitches")),
-                      tags$ul(h5("Pitch Selector - displays the most effective pitches to throw when facing this batter")),
                       br(),
                       tags$u(h4("Where is this data from?")),
                       br(),
