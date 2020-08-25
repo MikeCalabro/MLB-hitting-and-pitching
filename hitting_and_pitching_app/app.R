@@ -448,7 +448,7 @@ server <- function(input, output) {
   
    # Determines the first year from which my data is collected
    start_year <- reactive({
-     
+
      year <- deframe(playerid_lookup(input$last_name) %>%
                        filter(mlbam_id == input$mlbamid) %>%
                        select(mlb_played_first))
@@ -463,26 +463,18 @@ server <- function(input, output) {
   
    # This is the function where the data for every plot and table is downloaded and lives
    batter_data <- reactive({
-      
-     withProgress(message = sprintf('%s %s data is loading', input$first_name, input$last_name),
-                  detail = 'Trust the process... and Go Sox', value = 0, {
-                    for (i in 1:60) {
-                      incProgress(1/60)
-                      Sys.sleep(0.25)
-                    }
-                  })
      
-       seasons <- (start_year():2020)
+      withProgress(
+                   purrr::map_df((start_year():2020), function(x){
+                     scrape_statcast_savant_batter(start_date = glue::glue("{x}-04-01"),
+                                                   end_date = glue::glue("{x}-10-30"),
+                                                   batterid = input$mlbamid)
+                   }),
+                  message = sprintf('%s %s data is loading', input$first_name, input$last_name),
+                  detail = 'Trust the process... and Go Sox', value = 0.98)
      
-     
-       data <- purrr::map_df(seasons, function(x){
-         scrape_statcast_savant_batter(start_date = glue::glue("{x}-04-01"),
-                                       end_date = glue::glue("{x}-10-30"),
-                                       batterid = input$mlbamid)
-       })
        
-     return(data)
-       
+
      })
    
    # Each output$... creates an item (plot/table/text) that can be called in the UI
