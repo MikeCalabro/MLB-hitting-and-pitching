@@ -3,6 +3,7 @@ library(tidyverse)    # Data manipulation and visualization
 library(baseballr)    # For obtaining the statcast data
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
+library(plotly)       # For hover-over-table interactivity
 
 # data read in from popular_players rScript
 popular_players <- read_rds("popular")
@@ -470,7 +471,19 @@ ui <- fluidPage(
                br(),
                tableOutput("psTable")
         )
-      )
+      ),
+     
+     tabPanel("Launch Speed Viz",
+              
+              plotOutput("lsTabTable", height = "600px")
+              
+              ),
+     
+     tabPanel("Expected wOBA Viz",
+              
+              plotOutput("xwOBATabTable", height = "600px")
+              
+     )
    )
 )
 
@@ -1304,6 +1317,100 @@ server <- function(input, output) {
    striped = TRUE,
    bordered = TRUE,
    hover = TRUE)
+   
+   output$lsTabTable <- renderPlot({
+     
+     bot <- deframe(batter_data() %>%
+                      summarise(mean(sz_bot, na.rm = TRUE)))
+     
+     top <- deframe(batter_data() %>%
+                      summarise(mean(sz_top, na.rm = TRUE)))
+     
+     # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
+     num_x <- c(-.66, 0, .66,
+                -.66, 0, .66,
+                -.66, 0, .66,
+                -1.3, 1.3, -1.3, 1.3)
+     num_y <- c(top - 0.3, top - 0.3, top - 0.3,
+                top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
+                bot + 0.3, bot + 0.3, bot + 0.3,
+                top + 0.2, top + 0.2, bot - 0.2, bot - 0.2)
+     val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14)
+     num_tab <- data.frame(num_x, num_y, val)
+     
+     batter_data() %>%
+     filter(!pitch_name %in% c("null", "Knuckleball")) %>%
+       ggplot(aes(x = plate_x, y = plate_z, z = as.double(launch_speed))) +
+       stat_summary_2d(binwidth = c(.35, .35)) +
+       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -1, y = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot),
+                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -1, y = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3),
+                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "gray") +
+       geom_segment(aes(x = -1, y = mean(sz_top), xend = 1, yend = mean(sz_top)), size = 1.5) +
+       geom_segment(aes(x = -1, y = mean(sz_bot), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot)), size = 1.5) +
+       geom_segment(aes(x = 1, y = mean(sz_top), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       ylim(0.7, 4) +
+       xlim(-5.5, 5.5) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank()) +
+       labs(fill = "Launch Speed") +
+       scale_fill_gradient2(low = "blue", mid = "gray", high = "red", midpoint = 85) +
+       ggtitle(sprintf("%s Launch Speed Based On Strike Zone Location", input$last))
+
+   })
+   
+   output$xwOBATabTable <- renderPlot({
+     
+     bot <- deframe(batter_data() %>%
+                      summarise(mean(sz_bot, na.rm = TRUE)))
+     
+     top <- deframe(batter_data() %>%
+                      summarise(mean(sz_top, na.rm = TRUE)))
+     
+     # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
+     num_x <- c(-.66, 0, .66,
+                -.66, 0, .66,
+                -.66, 0, .66,
+                -1.3, 1.3, -1.3, 1.3)
+     num_y <- c(top - 0.3, top - 0.3, top - 0.3,
+                top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
+                bot + 0.3, bot + 0.3, bot + 0.3,
+                top + 0.2, top + 0.2, bot - 0.2, bot - 0.2)
+     val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14)
+     num_tab <- data.frame(num_x, num_y, val)
+     
+     batter_data() %>%
+       filter(!pitch_name %in% c("null", "Knuckleball")) %>%
+       ggplot(aes(x = plate_x, y = plate_z, z = as.double(estimated_woba_using_speedangle))) +
+       stat_summary_2d(binwidth = c(.35, .35)) +
+       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -1, y = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot),
+                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -1, y = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3),
+                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "gray") +
+       geom_segment(aes(x = -1, y = mean(sz_top), xend = 1, yend = mean(sz_top)), size = 1.5) +
+       geom_segment(aes(x = -1, y = mean(sz_bot), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot)), size = 1.5) +
+       geom_segment(aes(x = 1, y = mean(sz_top), xend = 1, yend = mean(sz_bot)), size = 1.5) +
+       ylim(0.7, 4) +
+       xlim(-5.5, 5.5) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank()) +
+       labs(fill = "Launch Speed") +
+       scale_fill_gradient2(low = "blue", mid = "gray", high = "red", midpoint = 0.5) +
+       ggtitle(sprintf("%s Estimated wOBA Based On Strike Zone Location", input$last))
+     
+   })
      
 }
 
