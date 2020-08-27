@@ -4,6 +4,7 @@ library(baseballr)    # For obtaining the statcast data
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
 library(plotly)       # For hover-over-table interactivity
+library(tidybayes)    # Distribution Visualizations
 
 # data read in from popular_players rScript
 popular_players <- read_rds("popular")
@@ -474,15 +475,32 @@ ui <- fluidPage(
       ),
      
      tabPanel("Launch Speed Viz",
-              
-              plotOutput("lsTabTable", height = "600px")
+              tabsetPanel(
+                tabPanel("Strike Zone",
+                         column(8, align = "right",
+                                h4(strong(textOutput("lsTabTitle")))
+                                ),
+                         plotOutput("lsTabPlot", height = "580px")
+                         ), 
+                tabPanel("Distribution Comparison",
+                         plotOutput("lsTabDist", height = "550px")
+                )
+              )
               
               ),
      
      tabPanel("Expected wOBA Viz",
-              
-              plotOutput("xwOBATabTable", height = "600px")
-              
+              tabsetPanel(
+                tabPanel("Strike Zone",
+                         column(8, align = "right",
+                                h4(strong(textOutput("xwOBATabTitle")))
+                         ),
+                         plotOutput("xwOBATabPlot", height = "580px")
+                ), 
+                tabPanel("Distribution Comparison",
+                         plotOutput("xwOBATabDist", height = "550px")
+                )
+              )
      )
    )
 )
@@ -1318,7 +1336,7 @@ server <- function(input, output) {
    bordered = TRUE,
    hover = TRUE)
    
-   output$lsTabTable <- renderPlot({
+   output$lsTabPlot <- renderPlot({
      
      bot <- deframe(batter_data() %>%
                       summarise(mean(sz_bot, na.rm = TRUE)))
@@ -1342,12 +1360,12 @@ server <- function(input, output) {
      filter(!pitch_name %in% c("null", "Knuckleball")) %>%
        ggplot(aes(x = plate_x, y = plate_z, z = as.double(launch_speed))) +
        stat_summary_2d(binwidth = c(.35, .35)) +
-       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
-       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "black") +
+       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "black") +
        geom_segment(aes(x = -1, y = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot),
-                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "gray") +
+                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "black") +
        geom_segment(aes(x = -1, y = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3),
-                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "gray") +
+                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "black") +
        geom_segment(aes(x = -1, y = mean(sz_top), xend = 1, yend = mean(sz_top)), size = 1.5) +
        geom_segment(aes(x = -1, y = mean(sz_bot), xend = 1, yend = mean(sz_bot)), size = 1.5) +
        geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot)), size = 1.5) +
@@ -1360,12 +1378,11 @@ server <- function(input, output) {
              panel.grid = element_blank(),
              panel.background = element_blank()) +
        labs(fill = "Launch Speed") +
-       scale_fill_gradient2(low = "blue", mid = "gray", high = "red", midpoint = 85) +
-       ggtitle(sprintf("%s Launch Speed Based On Strike Zone Location", input$last))
+       scale_fill_gradient2(low = "blue", mid = "gray", high = "red", midpoint = 85)
 
    })
    
-   output$xwOBATabTable <- renderPlot({
+   output$xwOBATabPlot <- renderPlot({
      
      bot <- deframe(batter_data() %>%
                       summarise(mean(sz_bot, na.rm = TRUE)))
@@ -1389,12 +1406,12 @@ server <- function(input, output) {
        filter(!pitch_name %in% c("null", "Knuckleball")) %>%
        ggplot(aes(x = plate_x, y = plate_z, z = as.double(estimated_woba_using_speedangle))) +
        stat_summary_2d(binwidth = c(.35, .35)) +
-       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "gray") +
-       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "gray") +
+       geom_segment(aes(x = -0.333, y = mean(sz_top), xend = -0.333, yend = mean(sz_bot)), color = "black") +
+       geom_segment(aes(x = 0.333, y = mean(sz_top), xend = 0.333, yend = mean(sz_bot)), color = "black") +
        geom_segment(aes(x = -1, y = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot),
-                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "gray") +
+                        xend = 1, yend = ((mean(sz_top) - mean(sz_bot))/3) + mean(sz_bot)), color = "black") +
        geom_segment(aes(x = -1, y = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3),
-                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "gray") +
+                        xend = 1, yend = mean(sz_top) - ((mean(sz_top) - mean(sz_bot))/3)), color = "black") +
        geom_segment(aes(x = -1, y = mean(sz_top), xend = 1, yend = mean(sz_top)), size = 1.5) +
        geom_segment(aes(x = -1, y = mean(sz_bot), xend = 1, yend = mean(sz_bot)), size = 1.5) +
        geom_segment(aes(x = -1, y = mean(sz_top), xend = -1, yend = mean(sz_bot)), size = 1.5) +
@@ -1406,10 +1423,58 @@ server <- function(input, output) {
              axis.title = element_blank(),
              panel.grid = element_blank(),
              panel.background = element_blank()) +
-       labs(fill = "Launch Speed") +
-       scale_fill_gradient2(low = "blue", mid = "gray", high = "red", midpoint = 0.5) +
-       ggtitle(sprintf("%s Estimated wOBA Based On Strike Zone Location", input$last))
+       labs(fill = "Expected wOBA") +
+       scale_fill_gradient2(low = "blue", mid = "gray", high = "red", midpoint = 0.5)
+
+   })
+   
+   output$xwOBATabDist <- renderPlot({
      
+     batter_data() %>%
+       filter(type == "X") %>%
+       filter(!is.na(zone)) %>%
+       mutate(zone = as.character(zone)) %>%
+       filter(!zone %in% c("11", "12", "13", "14")) %>%
+       filter(!estimated_woba_using_speedangle == "null") %>%
+       mutate(estimated_woba_using_speedangle = as.double(estimated_woba_using_speedangle)) %>%
+       ggplot(aes(x = estimated_woba_using_speedangle, y = reorder(zone, estimated_woba_using_speedangle), fill = stat(x) < 0.5)) +
+       stat_halfeye() +
+       geom_vline(xintercept = 0.5, linetype = "dashed") +
+       xlab("Launch Speed") +
+       ylab("Zone Location") +
+       scale_fill_manual(values = c("indianred1", "skyblue")) +
+       ggtitle(sprintf("%s Expected wOBA Based On Strike Zone Location", input$last)) +
+       theme(axis.text = element_text(size = 17),
+             axis.title = element_text(size = 17))
+     
+   })
+   
+   output$lsTabDist <- renderPlot({
+     
+     batter_data() %>%
+       filter(type == "X") %>%
+       filter(!is.na(zone)) %>%
+       mutate(zone = as.character(zone)) %>%
+       filter(!is.na(launch_speed)) %>%
+       filter(!zone %in% c("11", "12", "13", "14")) %>%
+       ggplot(aes(x = launch_speed, y = reorder(zone, launch_speed), fill = stat(x) < 90)) +
+       stat_halfeye() +
+       geom_vline(xintercept = 90, linetype = "dashed") +
+       xlab("Launch Speed") +
+       ylab("Zone Location") +
+       scale_fill_manual(values = c("indianred1", "skyblue")) +
+       ggtitle(sprintf("%s Launch Speed Based On Strike Zone Location", input$last)) +
+       theme(axis.text = element_text(size = 17),
+             axis.title = element_text(size = 17))
+     
+   })
+   
+   output$lsTabTitle <- renderText({
+     sprintf("%s Launch Speed Based On Strike Zone Location", input$last)
+   })
+   
+   output$xwOBATabTitle <- renderText({
+     sprintf("%s Expected wOBA Based On Strike Zone Location", input$last)
    })
      
 }
