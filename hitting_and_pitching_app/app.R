@@ -3,7 +3,6 @@ library(tidyverse)    # Data manipulation and visualization
 library(baseballr)    # For obtaining the statcast data
 library(png)          # To put that plate image on the screen
 library(shinythemes)  # For theme selection
-library(plotly)       # For hover-over-table interactivity
 library(tidybayes)    # Distribution Visualizations
 
 # data read in from popular_players rScript
