@@ -297,12 +297,9 @@ ui <- fluidPage(
                          "Cutter",
                          "Sinker",
                          "Slider"),
-                       selected = c("2-Seam Fastball", 
-                                    "4-Seam Fastball",
+                       selected = c("4-Seam Fastball",
                                     "Changeup",
                                     "Curveball",
-                                    "Cutter",
-                                    "Sinker",
                                     "Slider"),
                        multiple = TRUE),
           
@@ -315,11 +312,7 @@ ui <- fluidPage(
                         "Hit"  = "hit",
                         "Swinging Strike"  = "swinging_strike"),
                        selected = c("ball",
-                                    "called_strike",
-                                    "foul",
-                                    "in_play_out",
-                                    "hit",
-                                    "swinging_strike"),
+                                    "called_strike"),
                        multiple = TRUE),
            
            sliderInput("balls",
@@ -443,7 +436,7 @@ ui <- fluidPage(
                         "Hitting a Home Run" = "homerun",
                         "Hitting the Ball Hard" = "hit_hard",
                         "Hitting a Line Drive" = "line_drive"),
-                      selected = "swing"),
+                      selected = "hit_hard"),
           
           numericInput("psOptions",
                        "How Many Pitch Options Do You Want To Consider?",
@@ -466,8 +459,9 @@ ui <- fluidPage(
         column(8,
                column(3),
                column(6,
-                      textOutput("psTitle")),
+                      tags$u(strong(textOutput("psTitle")))),
                column(3),
+               br(),
                br(),
                tableOutput("psTable")
         )
@@ -482,11 +476,24 @@ ui <- fluidPage(
                          plotOutput("lsTabPlot", height = "580px")
                          ), 
                 tabPanel("Distribution Comparison",
-                         plotOutput("lsTabDist", height = "550px")
+                         column(8,
+                                plotOutput("lsTabDist", height = "550px")
+                         ),
+                         column(4,
+                                plotOutput("blankZone", height = "490px"),
+                                img(src="plate.png", width = "83%", height = "50px")
+                         )
+                ),
+                tabPanel("Regression",
+                         br(),
+                         h4("Linear Regression of Launch Speed on Strike Zone Location"),
+                         br(),
+                         tableOutput("lsReg"), 
+                         br(),
+                         textOutput("lsRSQ")
                 )
               )
-              
-              ),
+            ),
      
      tabPanel("Expected wOBA Viz",
               tabsetPanel(
@@ -497,8 +504,22 @@ ui <- fluidPage(
                          plotOutput("xwOBATabPlot", height = "580px")
                 ), 
                 tabPanel("Distribution Comparison",
-                         plotOutput("xwOBATabDist", height = "550px")
-                )
+                         column(8,
+                                plotOutput("xwOBATabDist", height = "550px")
+                         ),
+                         column(4,
+                                plotOutput("blankZone2", height = "490px"),
+                                img(src="plate.png", width = "83%", height = "50px")
+                         )
+                ),
+                tabPanel("Regression",
+                         br(),
+                         h4("Linear Regression of Expected wOBA on Strike Zone Location"),
+                         br(),
+                         tableOutput("xwOBAReg"), 
+                         br(),
+                         textOutput("xwOBARSQ")
+                         )
               )
      )
    )
@@ -1439,7 +1460,7 @@ server <- function(input, output) {
        ggplot(aes(x = estimated_woba_using_speedangle, y = reorder(zone, estimated_woba_using_speedangle), fill = stat(x) < 0.5)) +
        stat_halfeye() +
        geom_vline(xintercept = 0.5, linetype = "dashed") +
-       xlab("Launch Speed") +
+       xlab("Expected Weighted On-Base Average") +
        ylab("Zone Location") +
        scale_fill_manual(values = c("indianred1", "skyblue")) +
        ggtitle(sprintf("%s Expected wOBA Based On Strike Zone Location", input$last)) +
@@ -1474,6 +1495,120 @@ server <- function(input, output) {
    
    output$xwOBATabTitle <- renderText({
      sprintf("%s Expected wOBA Based On Strike Zone Location", input$last)
+   })
+   
+   output$blankZone <- renderPlot({
+     
+     bot <- 1.4
+     
+     top <- 3.2
+     
+     # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
+     num_x <- c(-.66, 0, .66,
+                -.66, 0, .66,
+                -.66, 0, .66)
+     num_y <- c(top - 0.3, top - 0.3, top - 0.3,
+                top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
+                bot + 0.3, bot + 0.3, bot + 0.3)
+     val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9)
+     num_tab <- data.frame(num_x, num_y, val)
+     
+     ggplot() +
+       geom_segment(aes(x = -1, y = 1.4, xend = 1, yend = 1.4)) +
+       geom_segment(aes(x = -1, y = 3.2, xend = 1, yend = 3.2)) +
+       geom_segment(aes(x = 1, y = 1.4, xend = 1, yend = 3.2)) +
+       geom_segment(aes(x = -1, y = 1.4, xend = -1, yend = 3.2)) +
+       geom_segment(aes(x = -.33, y = 1.4, xend = -.33, yend = 3.2)) +
+       geom_segment(aes(x = .33, y = 1.4, xend = .33, yend = 3.2)) +
+       geom_segment(aes(x = -1, y = 2.0, xend = 1, yend = 2.0)) +
+       geom_segment(aes(x = -1, y = 2.6, xend = 1, yend = 2.6)) +
+       geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black") +
+       xlim(-2, 2) +
+       ylim(0.6, 3.4) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+       
+   })
+   
+   output$blankZone2 <- renderPlot({
+     
+     bot <- 1.4
+     
+     top <- 3.2
+     
+     # This could have been done more efficiently, but it makes a table so I can display the strike zone numbers
+     num_x <- c(-.66, 0, .66,
+                -.66, 0, .66,
+                -.66, 0, .66)
+     num_y <- c(top - 0.3, top - 0.3, top - 0.3,
+                top - ((top-bot)/2), top - ((top-bot)/2), top - ((top-bot)/2),
+                bot + 0.3, bot + 0.3, bot + 0.3)
+     val <- c(1, 2, 3, 4, 5, 6, 7, 8, 9)
+     num_tab <- data.frame(num_x, num_y, val)
+     
+     ggplot() +
+       geom_segment(aes(x = -1, y = 1.4, xend = 1, yend = 1.4)) +
+       geom_segment(aes(x = -1, y = 3.2, xend = 1, yend = 3.2)) +
+       geom_segment(aes(x = 1, y = 1.4, xend = 1, yend = 3.2)) +
+       geom_segment(aes(x = -1, y = 1.4, xend = -1, yend = 3.2)) +
+       geom_segment(aes(x = -.33, y = 1.4, xend = -.33, yend = 3.2)) +
+       geom_segment(aes(x = .33, y = 1.4, xend = .33, yend = 3.2)) +
+       geom_segment(aes(x = -1, y = 2.0, xend = 1, yend = 2.0)) +
+       geom_segment(aes(x = -1, y = 2.6, xend = 1, yend = 2.6)) +
+       geom_text(data = num_tab, aes(x = num_x, y = num_y, label = val), size = 8.5,color = "black") +
+       xlim(-2, 2) +
+       ylim(0.6, 3.4) +
+       theme(axis.ticks = element_blank(),
+             axis.text = element_blank(),
+             axis.title = element_blank(),
+             panel.grid = element_blank(),
+             panel.background = element_blank())
+     
+   })
+   
+   output$lsReg <- renderTable({
+     zone <- c("Zone 1 (Intercept)", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8", "Zone 9")
+     reg_table <- summary(lm(launch_speed ~ zone, data = batter_data() %>%
+                  filter(type == "X") %>%
+                  mutate(zone = as.character(zone)) %>%
+                  filter(!zone %in% c("11", "12", "13", "14", "null"))))$coefficients
+      zone %>% cbind(reg_table)
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "m")
+   
+   output$lsRSQ <- renderText({
+     sprintf("R-Squared: %f", summary(lm(launch_speed ~ zone, data = batter_data() %>%
+                  filter(type == "X") %>%
+                  mutate(zone = as.character(zone)) %>%
+                  filter(!zone %in% c("11", "12", "13", "14", "null"))))$r.squared)
+   })
+   
+   output$xwOBAReg <- renderTable({
+     zone <- c("Zone 1 (Intercept)", "Zone 2", "Zone 3", "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8", "Zone 9")
+     reg_table <- summary(lm(estimated_woba_using_speedangle ~ zone, data = batter_data() %>%
+                               filter(type == "X") %>%
+                               filter(!estimated_woba_using_speedangle == "null") %>%
+                               mutate(estimated_woba_using_speedangle = as.double(estimated_woba_using_speedangle)) %>%
+                               mutate(zone = as.character(zone)) %>%
+                               filter(!zone %in% c("11", "12", "13", "14", "null"))))$coefficients
+     zone %>% cbind(reg_table)
+   },
+   striped = TRUE,
+   bordered = TRUE,
+   spacing = "m")
+   
+   output$xwOBARSQ <- renderText({
+     sprintf("R-Squared: %f", summary(lm(estimated_woba_using_speedangle ~ zone, data = batter_data() %>%
+                                           filter(type == "X") %>%
+                                           filter(!estimated_woba_using_speedangle == "null") %>%
+                                           mutate(estimated_woba_using_speedangle = as.double(estimated_woba_using_speedangle)) %>%
+                                           mutate(zone = as.character(zone)) %>%
+                                           filter(!zone %in% c("11", "12", "13", "14", "null"))))$r.squared)
    })
      
 }
